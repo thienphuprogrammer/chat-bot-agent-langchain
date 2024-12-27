@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.12 (chatbot-agent-langchain-MeslnlcA)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (chatbot-agent-langchain-MeslnlcA)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="LANGCHAIN" project-jdk-type="Python SDK" />
 </project>

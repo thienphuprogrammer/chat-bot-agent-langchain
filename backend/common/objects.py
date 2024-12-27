@@ -1,5 +1,6 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
 
 
 class Message(BaseModel):
@@ -15,10 +16,10 @@ class MessageTurn(BaseModel):
 
 class ChatRequest(BaseModel):
     input: str
-    conversation_id: Option[str]
+    conversation_id: Optional[str]
 
 
-def message_from_dict(message: dict)-> str:
+def message_from_dict(message: dict) -> str:
     human_message = message["human_message"]
     ai_message = message["ai_message"]
 
