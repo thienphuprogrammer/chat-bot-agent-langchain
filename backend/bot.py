@@ -114,7 +114,7 @@ class Bot(BaseObject):
         return memory_class(config=self.config, **parameters)
 
     def get_model_kwargs(self, model: Optional[ModelTypes]):
-        if model and model == ModelTypes.OPENA:
+        if model and model == ModelTypes.OPENAI:
             return self.openai_model_kwargs
         else:
             return self.default_model_kwargs

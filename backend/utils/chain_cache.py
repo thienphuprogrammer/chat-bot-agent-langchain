@@ -4,9 +4,9 @@ from typing import Optional
 
 from gptcache import Cache
 from gptcache.adapter.api import init_similar_cache
-from langchain.cache import GPTCache
-from langchain.cache import InMemoryCache
 from langchain.globals import set_llm_cache
+from langchain_community.cache import GPTCache
+from langchain_community.cache import InMemoryCache
 
 from backend.common.config import BaseObject
 

@@ -1,10 +1,12 @@
 import logging
-from langchain.memory import MongoDBChatMessageHistory
+
+from langchain_community.chat_message_histories.mongodb import MongoDBChatMessageHistory
 
 from backend.common.config import Config
 from backend.memory.base_memory import BaseChatbotMemory
 
 logger = logging.getLogger(__name__)
+
 
 class MongoChatbotMemory(BaseChatbotMemory):
     def __init__(self, config: Config = None, **kwargs):

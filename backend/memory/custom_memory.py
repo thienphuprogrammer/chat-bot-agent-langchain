@@ -1,9 +1,20 @@
 import json
 from typing import List
+
+from dotenv import load_dotenv
 from pymongo import MongoClient, errors
 
+from backend.common.common_keys import *
 from backend.common.config import Config, BaseObject
 from backend.common.objects import MessageTurn, message_from_dict
+
+load_dotenv()
+import os
+
+print(os.getenv(MONGO_CLUSTER))
+print(os.getenv(MONGO_USERNAME))
+print(os.getenv(MONGO_PASSWORD))
+print(os.getenv(MONGO_DATABASE))
 
 
 class BaseCustomMongoChatbotMemory(BaseObject):
@@ -107,3 +118,9 @@ class CustomMongoChatbotMemory(BaseObject):
 
     def add_message(self, message_turn: MessageTurn):
         self.memory.add_message(message_turn)
+
+
+if __name__ == "__main__":
+    config = Config(credentials="./../secure/vertexai.json")
+    memory = CustomMongoChatbotMemory(config=config)
+    memory.clear()

@@ -1,12 +1,12 @@
+import json
 import logging
 import os
-import json
-import vertexai
-
 import urllib.parse
 
-from .constants import CHAT_MODEL_NAME
+import vertexai
+
 from .common_keys import *
+from .constants import CHAT_MODEL_NAME
 
 
 class Singleton(type):
@@ -50,7 +50,8 @@ class Config(BaseObject):
             memory_window_size: int = 5
     ):
         super().__init__()
-        self.credentials = credentials if credentials is not None else os.getenv(CREDENTIALS_FILE, "secure/vertexai.json")
+        self.credentials = credentials if credentials is not None else os.getenv(CREDENTIALS_FILE,
+                                                                                 "secure/vertexai.json")
 
         self.init_env()
         self.serp_api_token = serp_api_token if serp_api_token is not None else ""
@@ -67,12 +68,14 @@ class Config(BaseObject):
             self.mongo_username = urllib.parse.quote_plus(self.mongo_username)
 
         self.mongo_cluster = mongo_cluster if mongo_cluster is not None else os.getenv(MONGO_CLUSTER)
-        self.memory_database_name = memory_database_name if memory_database_name is not None else os.getenv(MONGO_DATABASE, "langchain_bot")
+        self.memory_database_name = memory_database_name if memory_database_name is not None else os.getenv(
+            MONGO_DATABASE, "langchain_bot")
         self.memory_collection_name = memory_collection_name if memory_collection_name is not None \
             else os.getenv(MONGO_COLLECTION, "chatbot")
         self.memory_connection_string = memory_connection_string if memory_connection_string is not None \
             else os.getenv(MONGO_CONNECTION_STRING,
-                           f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_cluster}.xnkswcg.mongodb.net")
+                           f"mongodb+srv://{self.mongo_username}:%40{self.mongo_password}@{self.mongo_cluster}.1hfpp"
+                           f".mongodb.net/?retryWrites=true&w=majority&appName={self.mongo_cluster}")
         self.session_id = session_id if session_id is not None else "chatbot_backend"
         self.memory_window_size = memory_window_size if memory_window_size is not None else 5
         self.ai_prefix = os.getenv(AI_PREFIX, "AI")

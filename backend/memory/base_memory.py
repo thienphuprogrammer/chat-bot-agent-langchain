@@ -1,6 +1,7 @@
 from typing import Optional
 
-from langchain.memory import ConversationBufferMemory, ChatMessageHistory
+from langchain.memory import ConversationBufferMemory
+from langchain_core.chat_history import InMemoryChatMessageHistory
 
 from backend.common.config import BaseObject, Config
 from backend.common.objects import MessageTurn
@@ -12,18 +13,18 @@ class BaseChatbotMemory(BaseObject):
     def __init__(
             self,
             config: Config = None,
-            chat_history_class = ChatMessageHistory,
-            memory_class = ConversationBufferMemory,
+            chat_history_class=InMemoryChatMessageHistory,
+            memory_class=ConversationBufferMemory,
             chat_history_kwargs: Optional[dict] = None,
             **kwargs
     ):
         """
-        Base backend memory
-        :param config: Config object
-        :param chat_history_class: LangChain's chat history class
-        :param memory_class: LangChain's memory class
-        :param chat_history_kwargs: Memory class kwargs
-        :param kwargs:
+            Base backend memory
+            :param config: Config object
+            :param chat_history_class: LangChain's chat history class
+            :param memory_class: LangChain's memory class
+            :param chat_history_kwargs: Memory class kwargs
+            :param kwargs:
         """
         super().__init__()
         self.config = config if config is not None else Config()
