@@ -74,8 +74,8 @@ class Config(BaseObject):
             else os.getenv(MONGO_COLLECTION, "chatbot")
         self.memory_connection_string = memory_connection_string if memory_connection_string is not None \
             else os.getenv(MONGO_CONNECTION_STRING,
-                           f"mongodb+srv://{self.mongo_username}:%40{self.mongo_password}@{self.mongo_cluster}.1hfpp"
-                           f".mongodb.net/?retryWrites=true&w=majority&appName={self.mongo_cluster}")
+                           f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@{self.mongo_cluster}"
+                           f".1hfpp.mongodb.net/")
         self.session_id = session_id if session_id is not None else "chatbot_backend"
         self.memory_window_size = memory_window_size if memory_window_size is not None else 5
         self.ai_prefix = os.getenv(AI_PREFIX, "AI")

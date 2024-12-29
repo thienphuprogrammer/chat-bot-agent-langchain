@@ -43,7 +43,7 @@ class BaseCustomMongoChatbotMemory(BaseObject):
 
         self.db = self.client[self.database_name]
         self.collection = self.db[self.collection_name]
-        self.collection.create_index("session_id")
+        self.collection.create_index("SessionId")
         self.k = k
 
     def add_message(self, message_turn: MessageTurn):
