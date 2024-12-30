@@ -1,16 +1,15 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import random
-from typing import Optional, Any
+from typing import Any, Optional
 
 import gradio as gr
+from dotenv import load_dotenv
 
 from bot import Bot
 from memory import MemoryTypes
 from models import ModelTypes
 from utils import CacheTypes
+
+load_dotenv()
 
 
 class BaseGradioUI:
@@ -19,21 +18,21 @@ class BaseGradioUI:
             bot: Bot = None,
             bot_memory: Optional[MemoryTypes] = None,
             bot_model: Optional[ModelTypes] = None,
-            bot_cache: Optional[CacheTypes] = None
+            bot_cache: Optional[CacheTypes] = None,
     ):
         self.bot = bot if bot is not None else Bot(memory=bot_memory, model=bot_model, cache=bot_cache)
-        self._conservation_id = None
+        self._conversation_id = None
 
     @staticmethod
-    def create_conservations_id():
+    def create_conversation_id():
         return str(random.randint(100000000, 999999999))
 
     def user_state(self, message: str, chat_history: Any, conversation_id):
         """Initiate user state and chat history
 
-            Args:
-                message (str): user message
-                chat_history (Any): chat history
+        Args:
+            message (str): user message
+            chat_history (Any): chat history
         """
         if not conversation_id:
             conversation_id = self.create_conversation_id()
@@ -49,7 +48,7 @@ class BaseGradioUI:
         with gr.Blocks() as demo:
             conversation_id_state = gr.State("")
             gr.Markdown("""<h1><center> LLM Assistant </center></h1>""")
-            chatbot = gr.Chatbot(label="Assistant").style(height=700)
+            chatbot = gr.Chatbot(label="Assistant", height=700)
 
             with gr.Row():
                 message = gr.Textbox(show_label=False,
@@ -78,9 +77,12 @@ class BaseGradioUI:
 
 
 if __name__ == "__main__":
+    bot = Bot(
+        memory=MemoryTypes.CUSTOM_MEMORY,
+        model=ModelTypes.NVIDIA,
+        cache=None,
+    )
     demo = BaseGradioUI(
-        bot_memory=MemoryTypes.CUSTOM_MEMORY,
-        bot_model=ModelTypes.OPENAI,
-        # bot_cache=CacheTypes.GPTCache
+        bot=bot
     )
     demo.start_demo()

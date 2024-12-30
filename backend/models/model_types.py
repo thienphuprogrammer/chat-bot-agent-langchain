@@ -18,3 +18,6 @@ MODEL_TO_CLASS = {
     "VERTEX": ChatVertexAI,
     "LLAMA-CPP": LlamaCpp
 }
+
+if __name__ == "__main__":
+    print(MODEL_TO_CLASS[ModelTypes.NVIDIA])

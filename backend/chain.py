@@ -42,7 +42,7 @@ class ChainManager(BaseObject):
                 "this should never happen."
             )
 
-        if model_type in [ModelTypes.VERTEX, ModelTypes.OPENAI]:
+        if model_type in [ModelTypes.VERTEX, ModelTypes.OPENAI, ModelTypes.NVIDIA]:
             if not model_name:
                 model_name = self.config.base_model_name
             return model_class(model_name=model_name, **parameters)

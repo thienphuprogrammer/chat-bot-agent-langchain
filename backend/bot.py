@@ -34,7 +34,7 @@ class Bot(BaseObject):
             memory_kwargs: Optional[dict] = None,
             model_kwargs: Optional[dict] = None,
             bot_personality: str = BOT_PERSONALITY,
-            tools: List[str] = None
+            tools: List[str] = None,
     ):
         super().__init__()
         self.config = config if config is not None else Config()
@@ -92,7 +92,8 @@ class Bot(BaseObject):
             tools=self.tools,
             verbose=True,
             max_iterations=2,
-            return_intermediate_steps=False
+            return_intermediate_steps=False,
+            handle_parsing_errors=True
         )
 
     def get_memory(self, parameters: dict = None, memory_type: Optional[MemoryTypes] = None):
@@ -116,6 +117,8 @@ class Bot(BaseObject):
     def get_model_kwargs(self, model: Optional[ModelTypes]):
         if model and model == ModelTypes.OPENAI:
             return self.openai_model_kwargs
+        elif model and model == ModelTypes.NVIDIA:
+            return self.nvidia_model_kwargs
         else:
             return self.default_model_kwargs
 
@@ -126,6 +129,13 @@ class Bot(BaseObject):
             "temperature": 0.2,
             "top_p": 0.8,
             "top_k": 40
+        }
+
+    @property
+    def nvidia_model_kwargs(self):
+        return {
+            "model_name": "meta/llama-3.1-405b-instruct",
+            "temperature": 0
         }
 
     @property

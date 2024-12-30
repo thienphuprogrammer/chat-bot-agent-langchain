@@ -1,20 +1,10 @@
 import json
 from typing import List
 
-from dotenv import load_dotenv
 from pymongo import MongoClient, errors
 
-from backend.common.common_keys import *
 from backend.common.config import Config, BaseObject
-from backend.common.objects import MessageTurn, message_from_dict
-
-load_dotenv()
-import os
-
-print(os.getenv(MONGO_CLUSTER))
-print(os.getenv(MONGO_USERNAME))
-print(os.getenv(MONGO_PASSWORD))
-print(os.getenv(MONGO_DATABASE))
+from backend.common.objects import MessageTurn, messages_from_dict
 
 
 class BaseCustomMongoChatbotMemory(BaseObject):
@@ -95,7 +85,7 @@ class BaseCustomMongoChatbotMemory(BaseObject):
         else:
             items = []
 
-        message: List[str] = [message_from_dict(item).text for item in items]
+        message: List[str] = [messages_from_dict(item) for item in items]
         return '\n'.join(message)
 
 

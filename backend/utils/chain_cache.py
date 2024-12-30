@@ -12,11 +12,11 @@ from backend.common.config import BaseObject
 
 CACHE_TYPE = {
     "in_memory": InMemoryCache,
-    "GPTCache": GPTCache,
+    "GPTCache": GPTCache
 }
 
 
-class CacheTypes(Enum):
+class CacheTypes(str, Enum):
     IN_MEMORY = "in_memory"
     GPT_CACHE = "GPTCache"
 
@@ -36,8 +36,10 @@ class ChatbotCache(BaseObject):
         param = {}
         if cache_type is None:
             cache_type = CacheTypes.IN_MEMORY
-        cache = CACHE_TYPE[cache_type]
+        cache = CACHE_TYPE[CacheTypes.IN_MEMORY.value]
         if cache_type == "GPTCache":
             param = {"init_func": init_gptcache}
         set_llm_cache(cache(**param))
         return cls()
+
+# print("CacheTypes.IN_MEMORY:", CACHE_TYPE[CacheTypes.IN_MEMORY.value])
