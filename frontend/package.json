@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "langsmith": "^0.2.14",
+    "next": "^15.1.3"
+  }
+}
