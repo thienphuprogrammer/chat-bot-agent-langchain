@@ -11,16 +11,16 @@ from langchain.schema.runnable.base import RunnableMap
 from langchain_core.runnables import RunnableLambda
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from backend.chain import ChainManager
-from backend.common.objects import Message, MessageTurn
-from backend.memory import MEM_TO_CLASS
-from backend.prompt import BOT_PERSONALITY
-from backend.tools.serp import CustomSearchTool
-from backend.utils import CacheTypes, ChatbotCache, BotAnonymizer
+from chain import ChainManager
 from common.config import Config, BaseObject
 from common.constants import *
+from common.objects import Message, MessageTurn
+from memory import MEM_TO_CLASS
 from memory import MemoryTypes
 from models import ModelTypes
+from prompt import BOT_PERSONALITY
+from tools.serp import CustomSearchTool
+from utils import CacheTypes, ChatbotCache, BotAnonymizer
 
 
 class Bot(BaseObject):
@@ -53,6 +53,7 @@ class Bot(BaseObject):
             model_kwargs=model_kwargs if model_kwargs else self.get_model_kwargs(model=model),
             partial_variables=partial_variables
         )
+
         self.input_queue = Queue(maxsize=6)
         self._memory = self.get_memory(memory_type=memory, parameters=memory_kwargs)
         if cache == CacheTypes.GPT_CACHE and model != ModelTypes.OPENAI:
@@ -71,7 +72,6 @@ class Bot(BaseObject):
             "input": itemgetter("input"),
             "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
             "history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
-
         }).with_config(run_name="LoadHistory")
 
         if self.config.enable_anonymizer:
@@ -79,11 +79,13 @@ class Bot(BaseObject):
             de_anonymizer = RunnableLambda(self.anonymizer.anonymizer.deanonymize).with_config(
                 run_name="DeAnonymizeResponse")
 
-            agent = (history_loader
-                     | anonymizer_runnable
-                     | self.chain.chain
-                     | de_anonymizer
-                     | ReActSingleInputOutputParser())
+            agent = (
+                    history_loader
+                    | anonymizer_runnable
+                    | self.chain.chain
+                    | de_anonymizer
+                    | ReActSingleInputOutputParser()
+            )
         else:
             agent = history_loader | self.chain.chain | ReActSingleInputOutputParser()
 

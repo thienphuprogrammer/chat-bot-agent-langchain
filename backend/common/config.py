@@ -5,8 +5,8 @@ import urllib.parse
 
 import vertexai
 
-from .common_keys import *
-from .constants import CHAT_MODEL_NAME
+from common_keys import *
+from constants import CHAT_MODEL_NAME
 
 
 class Singleton(type):

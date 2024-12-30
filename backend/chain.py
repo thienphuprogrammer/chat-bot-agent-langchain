@@ -4,9 +4,9 @@ from langchain import hub
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from backend.common.config import BaseObject, Config
-from backend.common.objects import Message
-from backend.models import ModelTypes, MODEL_TO_CLASS
+from common.config import BaseObject, Config
+from common.objects import Message
+from models import ModelTypes, MODEL_TO_CLASS
 
 
 class ChainManager(BaseObject):
@@ -27,7 +27,7 @@ class ChainManager(BaseObject):
     def get_model(self, model_type: Optional[ModelTypes] = None, parameters: Optional[dict] = None):
         model_name = parameters.pop("model_name", None)
         if model_type is None:
-            model_type = ModelTypes.VERTEX
+            model_type = ModelTypes.NVIDIA
 
         if model_type is not None:
             if model_type not in MODEL_TO_CLASS:

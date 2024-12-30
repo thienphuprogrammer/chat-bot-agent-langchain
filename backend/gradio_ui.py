@@ -1,4 +1,4 @@
-import random
+import uuid
 from typing import Any, Optional
 
 import gradio as gr
@@ -25,7 +25,7 @@ class BaseGradioUI:
 
     @staticmethod
     def create_conversation_id():
-        return str(random.randint(100000000, 999999999))
+        return str(uuid.uuid4())
 
     def user_state(self, message: str, chat_history: Any, conversation_id):
         """Initiate user state and chat history
@@ -47,8 +47,8 @@ class BaseGradioUI:
     def start_demo(self, port=8000, debug=False, share=True):
         with gr.Blocks() as demo:
             conversation_id_state = gr.State("")
-            gr.Markdown("""<h1><center> LLM Assistant </center></h1>""")
-            chatbot = gr.Chatbot(label="Assistant", height=700)
+            gr.Markdown("""<h1><center> Bot MiVa </center></h1>""")
+            chatbot = gr.Chatbot(label="Assistant", height=400)
 
             with gr.Row():
                 message = gr.Textbox(show_label=False,
