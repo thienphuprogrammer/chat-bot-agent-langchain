@@ -6,7 +6,6 @@ from typing import Optional, List, Union
 from langchain.agents import AgentExecutor
 from langchain.agents.format_scratchpad import format_log_to_str
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
-from langchain.callbacks import FinalStreamingStdOutCallbackHandler
 from langchain.schema.runnable.base import RunnableMap
 from langchain_core.runnables import RunnableLambda
 from langchain_core.tracers.langchain import wait_for_all_tracers
@@ -15,6 +14,7 @@ from chain import ChainManager
 from common.config import Config, BaseObject
 from common.constants import *
 from common.objects import Message, MessageTurn
+from loader import ModelLoader
 from memory import MEM_TO_CLASS
 from memory import MemoryTypes
 from models import ModelTypes
@@ -50,7 +50,7 @@ class Bot(BaseObject):
             config=self.config,
             model=model,
             prompt_template=prompt_template,
-            model_kwargs=model_kwargs if model_kwargs else self.get_model_kwargs(model=model),
+            model_kwargs=model_kwargs if model_kwargs else ModelLoader().get_model_kwargs(model=model),
             partial_variables=partial_variables
         )
 
@@ -115,46 +115,6 @@ class Bot(BaseObject):
                 "this should never happen."
             )
         return memory_class(config=self.config, **parameters)
-
-    def get_model_kwargs(self, model: Optional[ModelTypes]):
-        if model and model == ModelTypes.OPENAI:
-            return self.openai_model_kwargs
-        elif model and model == ModelTypes.NVIDIA:
-            return self.nvidia_model_kwargs
-        else:
-            return self.default_model_kwargs
-
-    @property
-    def default_model_kwargs(self):
-        return {
-            "max_output_tokens": 512,
-            "temperature": 0.2,
-            "top_p": 0.8,
-            "top_k": 40
-        }
-
-    @property
-    def nvidia_model_kwargs(self):
-        return {
-            "model_name": "meta/llama-3.1-405b-instruct",
-            "temperature": 0
-        }
-
-    @property
-    def openai_model_kwargs(self):
-        return {
-            "temperature": 0.2,
-            "model_name": "gpt-3.5-turbo"
-        }
-
-    @property
-    def streaming_model_kwargs(self):
-        return {
-            **self.default_model_kwargs,
-            "streaming": True,
-            "stop": ["\nObservation"],
-            "callbacks": [FinalStreamingStdOutCallbackHandler()]  # Use only with agent
-        }
 
     def reset_history(self, conversation_id: str = None):
         self.memory.clear(conversation_id=conversation_id)

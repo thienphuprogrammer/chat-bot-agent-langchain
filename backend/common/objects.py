@@ -19,6 +19,10 @@ class ChatRequest(BaseModel):
     conversation_id: Optional[str]
 
 
+class Question(BaseModel):
+    question: str = Field(description="User question")
+
+
 def messages_from_dict(message: dict) -> str:
     human_message = message["human_message"]
     ai_message = message["ai_message"]
