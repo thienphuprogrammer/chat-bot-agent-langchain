@@ -2,13 +2,12 @@ import hashlib
 from enum import Enum
 from typing import Optional
 
+from common.config import BaseObject
 from gptcache import Cache
 from gptcache.adapter.api import init_similar_cache
 from langchain.globals import set_llm_cache
 from langchain_community.cache import GPTCache
 from langchain_community.cache import InMemoryCache
-
-from backend.common.config import BaseObject
 
 CACHE_TYPE = {
     "in_memory": InMemoryCache,

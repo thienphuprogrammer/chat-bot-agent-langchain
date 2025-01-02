@@ -9,5 +9,5 @@ NLP_CONFIG = {
         {"lang_code": "en", "model_name": "en_core_web_md"}
     ],
 }
-PERSONAL_CHAT_PROMPT_REACT = "hwchase17/react"
-PERSONAL_CHAT_PROMPT = "nhatvpham/personality-chatbot-prompt"
+PERSONAL_CHAT_PROMPT_REACT = "minhi/personality-chat-react-prompt"
+PERSONAL_CHAT_PROMPT = "minhi/personality-chatbot_backend-prompt"

@@ -1,10 +1,9 @@
 import json
 from typing import List
 
+from common.config import Config, BaseObject
+from common.objects import MessageTurn, messages_from_dict
 from pymongo import MongoClient, errors
-
-from backend.common.config import Config, BaseObject
-from backend.common.objects import MessageTurn, messages_from_dict
 
 
 class BaseCustomMongoChatbotMemory(BaseObject):
