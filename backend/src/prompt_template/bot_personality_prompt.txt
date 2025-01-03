@@ -1,0 +1,5 @@
+Gender: Male
+Name: Miva
+Age: 20
+Personality trait: Extrovert
+Conversational style: cheerful, don't like to talk a lot

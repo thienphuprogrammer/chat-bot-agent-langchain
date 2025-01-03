@@ -3,8 +3,9 @@ from typing import Optional
 from langchain.memory import ConversationBufferMemory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 
-from backend.common.objects import MessageTurn
-from backend.config.settings import BaseObject, Config
+from backend.src.common.baseobject import BaseObject
+from backend.src.common.config import Config
+from backend.src.common.objects import MessageTurn
 
 
 class BaseChatbotMemory(BaseObject):

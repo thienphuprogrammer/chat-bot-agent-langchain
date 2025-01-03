@@ -1,61 +1,38 @@
-BOT_PERSONALITY = """
-Gender: Male
-Name: Miva
-Age: 20
-Personality trait: Extrovert
-Conversational style: cheerful, don't like to talk a lot
-Conversation domain: tán gẫu, tâm sự
-Other info: developed by Cong Minh and Tran Hieu"""
+import os
+from enum import Enum
 
-LLAMA_PROMPT = """
-[INST] <<SYS>>
-You are a helpful Vietnamese assistant with given personalities. 
-Help the user answer any questions or chat with them about anything they want. 
-<</SYS>>
-Below are descriptions of your personality traits, talk to users according to those traits:
-{personality}
-Current conversation:
-{history}
-Human: {input}
-AI: [/INST]
-"""
 
-FUSION_PROMPT = """
-You are a helpful assistant that generates multiple search queries based on a single input query. \n
-Generate multiple search queries related to: {question} \n
-Output (4 queries):
-"""
+class PromptTypes(str, Enum):
+    BOT_PERSONALITY_PROMPT = "bot_personality_prompt"
+    DECOMPOSITION_PROMPT = "decomposition_prompt"
+    FUSION_PROMPT = "fusion_prompt"
+    LLAMA_PROMPT = "llama_prompt"
+    MULTI_TURN_PROMPT = "multi_turn_prompt"
+    FINAL_RAG_PROMPT = "final_rag_prompt"
 
-DECOMPOSITION_PROMPT = """
-Here is the question you need to answer:
 
-\n --- \n {question} \n --- \n
+def load_prompt_from_file(types: PromptTypes) -> str:
+    # config = Config()
+    file_path: str = types.value + ".txt"
+    directory = os.path.dirname(__file__)
+    prompt_path = os.path.join(directory, './../prompt_template')
+    file_path = os.path.join(prompt_path, file_path) if not file_path.startswith(directory) else file_path
 
-Here is any available background question + answer pairs:
+    with open(file_path, "r") as file:
+        return file.read()
 
-\n --- \n {q_a_pairs} \n --- \n
 
-Here is additional context relevant to the question: 
+BOT_PERSONALITY = load_prompt_from_file(PromptTypes.BOT_PERSONALITY_PROMPT)
+LLAMA_PROMPT = load_prompt_from_file(PromptTypes.LLAMA_PROMPT)
+FUSION_PROMPT = load_prompt_from_file(PromptTypes.FUSION_PROMPT)
+DECOMPOSITION_PROMPT = load_prompt_from_file(PromptTypes.DECOMPOSITION_PROMPT)
+MULTI_TURN_PROMPT = load_prompt_from_file(PromptTypes.MULTI_TURN_PROMPT)
+FINAL_RAG_PROMPT = load_prompt_from_file(PromptTypes.FINAL_RAG_PROMPT)
 
-\n --- \n {context} \n --- \n
-
-Use the above context and any background question + answer pairs to answer the question: \n {question}
-
-"""
-
-MULTI_TURN_PROMPT = """
-You are an AI language model assistant. Your task is to generate five 
-different versions of the given user question to retrieve relevant documents from a vector 
-database. By generating multiple perspectives on the user question, your goal is to help
-the user overcome some of the limitations of the distance-based similarity search. 
-Provide these alternative questions separated by newlines. Original question: 
-{question}
-"""
-
-FINAL_RAG_PROMPT = """
-Answer the following question based on this context:
-
-{context}
-
-Question: {question}
-"""
+if __name__ == "__main__":
+    print(BOT_PERSONALITY)
+    print(LLAMA_PROMPT)
+    print(FUSION_PROMPT)
+    print(DECOMPOSITION_PROMPT)
+    print(MULTI_TURN_PROMPT)
+    print(FINAL_RAG_PROMPT)

@@ -4,8 +4,8 @@ from typing import Any, Optional
 import gradio as gr
 from dotenv import load_dotenv
 
-from backend.core.models import ModelTypes
-from backend.core.utils import CacheTypes
+from backend.src.core.models import ModelTypes
+from backend.src.utils import CacheTypes
 from bot import Bot
 from memory import MemoryTypes
 

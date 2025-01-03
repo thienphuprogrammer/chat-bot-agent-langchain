@@ -25,7 +25,8 @@ class Config(BaseObject):
             mongo_username: str = None,
             mongo_password: str = None,
             mongo_cluster: str = None,
-            memory_window_size: int = 5
+            memory_window_size: int = 5,
+            prompt_file: str = None,
     ):
         super().__init__()
         self.credentials = credentials if credentials is not None else os.getenv(CREDENTIALS_FILE,
@@ -60,6 +61,7 @@ class Config(BaseObject):
         self.human_prefix = os.getenv(HUMAN_PREFIX, "Human")
         self.memory_key = os.getenv(MEMORY_KEY, "history")
         self.enable_anonymizer = False
+        self.prompt_file = prompt_file if prompt_file is not None else os.getenv(PROMPT_FILE)
 
     def init_env(self):
         credential_data = json.load(open(self.credentials, "r"))

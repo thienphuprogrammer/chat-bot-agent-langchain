@@ -1,0 +1,13 @@
+Here is the question you need to answer:
+
+\n --- \n {question} \n --- \n
+
+Here is any available background question + answer pairs:
+
+\n --- \n {q_a_pairs} \n --- \n
+
+Here is additional context relevant to the question:
+
+\n --- \n {context} \n --- \n
+
+Use the above context and any background question + answer pairs to answer the question: \n {question}

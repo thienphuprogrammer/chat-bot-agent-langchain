@@ -1,8 +1,8 @@
 import logging
 
-from backend.config.settings import Config
 from langchain_community.chat_message_histories.mongodb import MongoDBChatMessageHistory
 
+from backend.src.common.config import Config
 from backend.src.memory.base_memory import BaseChatbotMemory
 
 logger = logging.getLogger(__name__)

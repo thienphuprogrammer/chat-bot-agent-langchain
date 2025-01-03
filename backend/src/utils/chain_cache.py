@@ -8,7 +8,7 @@ from langchain.globals import set_llm_cache
 from langchain_community.cache import GPTCache
 from langchain_community.cache import InMemoryCache
 
-from backend.config.settings import BaseObject
+from backend.src.common.baseobject import BaseObject
 
 CACHE_TYPE = {
     "in_memory": InMemoryCache,

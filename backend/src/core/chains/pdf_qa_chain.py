@@ -5,7 +5,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_openai import ChatOpenAI
 
 from backend.src.common.config import BaseObject, Config
-from backend.src.core.retrieval.retrieval import PDFRetriever
+from backend.src.core.retrieval.pdf_retrieval import PDFRetriever
 
 
 class PDFQAChain(BaseObject):
