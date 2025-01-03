@@ -1,3 +1,5 @@
-backend/secure/vertexai.json
+backend/src/secure/vertexai.json
+backend/src/secure/vertexai.json.enc
+backend/src/.env
 
 frontend/node_modules
