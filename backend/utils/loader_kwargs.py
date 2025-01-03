@@ -1,11 +1,11 @@
 from langchain.callbacks import FinalStreamingStdOutCallbackHandler
 
-from common.config import BaseObject, Config
-from models import ModelTypes
-from models.embedder_types import EmbedderTypes
+from backend.common.config import BaseObject, Config
+from backend.models import ModelTypes
+from backend.models.embedder_types import EmbedderTypes
 
 
-class ModelLoader(BaseObject):
+class ModelLoaderKwargs(BaseObject):
     def __init__(self, config: Config = None):
         super().__init__()
         self.config = config if config is not None else Config()
@@ -15,8 +15,17 @@ class ModelLoader(BaseObject):
             return self.openai_model_kwargs
         elif model and model == ModelTypes.NVIDIA:
             return self.nvidia_model_kwargs
+        elif model and model == ModelTypes.LLAMA_OLLAMA:
+            return self.llama_ollama_model_kwargs
         else:
             return self.default_model_kwargs
+
+    @property
+    def llama_ollama_model_kwargs(self):
+        return {
+            "model_name": "llama3.2:1b",
+            "temperature": 0
+        }
 
     @property
     def default_model_kwargs(self):
@@ -51,15 +60,23 @@ class ModelLoader(BaseObject):
         }
 
 
-class EmbedderLoader(BaseObject):
+class EmbedderLoaderKwargs(BaseObject):
     def __init__(self):
         super().__init__()
 
     def get_embedder_kwargs(self, model=None):
         if model and model == EmbedderTypes.NVIDIA:
             return self.nvidia_embedder_kwargs
+        elif model and model == EmbedderTypes.LLAMA_OLLAMA:
+            return self.llama_ollama_embedder_kwargs
 
         return self.default_embedder_kwargs
+
+    @property
+    def llama_ollama_embedder_kwargs(self):
+        return {
+            "model_name": "llama3.2:1b",
+        }
 
     @property
     def default_embedder_kwargs(self):
@@ -73,11 +90,10 @@ class EmbedderLoader(BaseObject):
     @property
     def nvidia_embedder_kwargs(self):
         return {
-            "model_name": "meta/llama-3.1-405b-instruct",
-            "temperature": 0
+            "model_name": "NV-Embed-QA",
         }
 
 
 if __name__ == "__main__":
-    embedder_loader = EmbedderLoader()
+    embedder_loader = EmbedderLoaderKwargs()
     print(embedder_loader.get_embedder_kwargs(model=EmbedderTypes.NVIDIA))

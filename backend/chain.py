@@ -4,9 +4,9 @@ from langchain import hub
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from common.config import BaseObject, Config
-from common.objects import Message
-from models import ModelTypes, MODEL_TO_CLASS
+from .common.config import BaseObject, Config
+from .common.objects import Message
+from .models import ModelTypes, MODEL_TO_CLASS
 
 
 class ChainManager(BaseObject):

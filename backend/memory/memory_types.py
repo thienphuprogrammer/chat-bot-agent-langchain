@@ -1,6 +1,6 @@
 from enum import Enum
 
-from memory import MongoChatbotMemory, BaseChatbotMemory, CustomMongoChatbotMemory
+from backend.memory import MongoChatbotMemory, BaseChatbotMemory, CustomMongoChatbotMemory
 
 
 class MemoryTypes(str, Enum):

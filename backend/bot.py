@@ -10,17 +10,16 @@ from langchain.schema.runnable.base import RunnableMap
 from langchain_core.runnables import RunnableLambda
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from chain import ChainManager
-from common.config import Config, BaseObject
-from common.constants import *
-from common.objects import Message, MessageTurn
-from loader import ModelLoader
-from memory import MEM_TO_CLASS
-from memory import MemoryTypes
-from models import ModelTypes
-from prompt import BOT_PERSONALITY
-from tools.serp import CustomSearchTool
-from utils import CacheTypes, ChatbotCache, BotAnonymizer
+from backend.utils.loader_kwargs import ModelLoaderKwargs
+from .chain import ChainManager
+from .common.config import Config, BaseObject
+from .common.constants import *
+from .common.objects import Message, MessageTurn
+from .memory import MEM_TO_CLASS, MemoryTypes
+from .models import ModelTypes
+from .prompt import BOT_PERSONALITY
+from .tools.serp import CustomSearchTool
+from .utils import CacheTypes, ChatbotCache, BotAnonymizer
 
 
 class Bot(BaseObject):
@@ -50,7 +49,7 @@ class Bot(BaseObject):
             config=self.config,
             model=model,
             prompt_template=prompt_template,
-            model_kwargs=model_kwargs if model_kwargs else ModelLoader().get_model_kwargs(model=model),
+            model_kwargs=model_kwargs if model_kwargs else ModelLoaderKwargs().get_model_kwargs(model=model),
             partial_variables=partial_variables
         )
 
