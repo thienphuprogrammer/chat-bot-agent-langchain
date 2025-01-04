@@ -79,7 +79,7 @@ class BaseGradioUI:
 if __name__ == "__main__":
     bot = Bot(
         memory=MemoryTypes.CUSTOM_MEMORY,
-        model=ModelTypes.NVIDIA,
+        model=ModelTypes.LLAMA_OLLAMA,
         cache=None,
     )
     demo = BaseGradioUI(

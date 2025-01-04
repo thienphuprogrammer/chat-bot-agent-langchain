@@ -10,16 +10,16 @@ from langchain.schema.runnable.base import RunnableMap
 from langchain_core.runnables import RunnableLambda
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from backend.config.constants import *
-from backend.config.settings import Config, BaseObject
-from backend.core.chains import ChainManager
-from backend.core.models import ModelTypes
-from backend.core.utils import BOT_PERSONALITY
-from backend.core.utils import CacheTypes, ChatbotCache, BotAnonymizer
-from backend.core.utils import ModelLoaderKwargs
-from .common.objects import Message, MessageTurn
-from .memory import MEM_TO_CLASS, MemoryTypes
-from .tools.serp import CustomSearchTool
+from backend.src.chain import ChainManager
+from backend.src.common import Config, BaseObject
+from backend.src.common.constants import *
+from backend.src.common.objects import Message, MessageTurn
+from backend.src.core.models import ModelTypes
+from backend.src.core.tools.serp import CustomSearchTool
+from backend.src.memory import MEM_TO_CLASS, MemoryTypes
+from backend.src.utils import CacheTypes, BotAnonymizer, ChatbotCache
+from backend.src.utils.loader_kwargs import ModelLoaderKwargs
+from backend.src.utils.prompt import *
 
 
 class Bot(BaseObject):

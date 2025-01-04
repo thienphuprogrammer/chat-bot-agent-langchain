@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 
+from langchain_core.documents import Document
 from pydantic import BaseModel, Field
+from typing_extensions import TypedDict
 
 
 class Message(BaseModel):
@@ -21,6 +23,12 @@ class ChatRequest(BaseModel):
 
 class Question(BaseModel):
     question: str = Field(description="User question")
+
+
+class State(TypedDict):
+    question: str
+    context: List[Document]
+    answer: str
 
 
 def messages_from_dict(message: dict) -> str:

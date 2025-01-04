@@ -1,2 +1,2 @@
-from baseobject import BaseObject
-from config import Config
+from .baseobject import BaseObject
+from .config import Config

@@ -1,2 +1,2 @@
-from anonymizer import BotAnonymizer
-from chain_cache import CacheTypes, ChatbotCache
+from .anonymizer import BotAnonymizer
+from .chain_cache import CacheTypes, ChatbotCache

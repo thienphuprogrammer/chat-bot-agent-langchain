@@ -2,8 +2,8 @@ import langdetect
 from langchain.schema import runnable
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
 
-from backend.config.constants import NLP_CONFIG
-from backend.config.settings import BaseObject, Config
+from backend.src.common import BaseObject, Config
+from backend.src.common.constants import NLP_CONFIG
 
 
 class BotAnonymizer(BaseObject):

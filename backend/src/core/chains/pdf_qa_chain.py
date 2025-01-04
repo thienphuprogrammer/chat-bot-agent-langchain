@@ -1,62 +1,63 @@
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_google_vertexai import VertexAIEmbeddings
-from langchain_openai import ChatOpenAI
+from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langgraph.graph import StateGraph
+from langgraph.prebuilt import ToolNode
 
-from backend.src.common.config import BaseObject, Config
-from backend.src.core.retrieval.pdf_retrieval import PDFRetriever
+from backend.src.common.config import BaseObject
+from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetriever
 
 
 class PDFQAChain(BaseObject):
     def __init__(
             self,
-            config: Config = None,
-            retriever=None,
-            model=None
+            retriever: PDFRetriever,
+            base_model,
+            prompt_template: str,
+            graph_builder: StateGraph = None,
     ):
         super().__init__()
-        self.config = config if config is not None else Config()
         self._retriever = retriever
-        self._model = model
+        self._retrieve = self._retriever.vector_store_manager.retrieve
+        self._base_model = base_model
+        self.tools = ToolNode([self._retrieve])
+        self._init_prompt_template(prompt_template=prompt_template)
 
-    def create_chain(self):
-        """Tạo QA chains."""
-        template = """
-        You are an information retrieval AI. Format the retrieved information as a table or text.
-        Use only the context for your answers, do not make up information.
+    def _init_prompt_template(self, prompt_template: str = None):
+        prompt: ChatPromptTemplate = ChatPromptTemplate.from_template(prompt_template)
+        self._prompt = prompt
 
-        Query: {query}
+    async def _predict(self, input_message: str) -> dict:
+        return self._base_model(input_message)
 
-        Context: {context}
-        """
-        prompt = ChatPromptTemplate.from_template(template)
-        chain = (
-                {"context": self._retriever, "query": RunnablePassthrough()}
-                | prompt
-                | self._model
-                | StrOutputParser()
-        )
-        return chain
+    async def __call__(self, query):
+        return await self._predict(query)
 
 
 if __name__ == "__main__":
-    # Khởi tạo các dependencies
-    embedder = VertexAIEmbeddings(model_name="text-embedding-004")
-    model = ChatOpenAI()
+    template = """
+                You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
 
+                Question: {question} 
+                Context: {context} 
+                Answer:
+            """
+
+    # Khởi tạo các dependencies
+    embedder = OllamaEmbeddings(model="llama3.2:1b")
+    model = ChatOllama(model="llama3.2:1b")
+
+    query = """
+        What is the OmniPred?
+    """
     # Khởi tạo PDFRetriever
-    pdf_retriever = PDFRetriever(embedder=embedder)
-    pdf_retriever.process_and_store_pdf(pdf_path="./../data/pdf/OmniPred_Language_Models_as_Universal_Regressors.pdf")
+    pdf_retriever = PDFRetriever(embedder=embedder, model=model)
+    pdf_retriever.process_and_store_pdf(pdf_path="./data/pdf/OmniPred.pdf")
+    # serialized, retrieved_docs = pdf_retriever.vector_store_manager.retrieve(query)
 
     # Khởi tạo QA chains
-    pdf_qa_chain = PDFQAChain(retriever=pdf_retriever.ask_question, model=model)
-    chain = pdf_qa_chain.create_chain()
+    pdf_qa_chain = PDFQAChain(retriever=pdf_retriever, base_model=model, prompt_template=template)
 
     # Chạy QA chains
-    query = """
-    Find the details about Antimicrobial Resistance (AMR) containment and Infection Prevention Control (IPC) program.
-    Break down the Approved Cost, both Total and Foreign Aid, Throwforward, and Estimated Expenditure.
-    """
-    result = chain.invoke(query)
+
+    result = pdf_qa_chain(query)
     print(result)

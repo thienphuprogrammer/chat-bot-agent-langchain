@@ -1,8 +1,8 @@
 from langchain.callbacks import FinalStreamingStdOutCallbackHandler
 
-from backend.config.settings import BaseObject, Config
-from backend.core.models import ModelTypes
-from backend.core.models.embedder_types import EmbedderTypes
+from backend.src.common import BaseObject, Config
+from backend.src.core.models import ModelTypes
+from backend.src.core.models.embedder_types import EmbedderTypes
 
 
 class ModelLoaderKwargs(BaseObject):
@@ -23,7 +23,7 @@ class ModelLoaderKwargs(BaseObject):
     @property
     def llama_ollama_model_kwargs(self):
         return {
-            "model_name": "llama3.2:1b",
+            "model": "llama3.2:1b",
             "temperature": 0
         }
 

@@ -3,8 +3,8 @@ from typing import List
 
 from pymongo import MongoClient, errors
 
-from backend.common.objects import MessageTurn, messages_from_dict
-from backend.config.settings import Config, BaseObject
+from backend.src.common.config import Config, BaseObject
+from backend.src.common.objects import MessageTurn, messages_from_dict
 
 
 class BaseCustomMongoChatbotMemory(BaseObject):
@@ -108,9 +108,3 @@ class CustomMongoChatbotMemory(BaseObject):
 
     def add_message(self, message_turn: MessageTurn):
         self.memory.add_message(message_turn)
-
-
-if __name__ == "__main__":
-    config = Config(credentials="./../secure/vertexai.json")
-    memory = CustomMongoChatbotMemory(config=config)
-    memory.clear()
