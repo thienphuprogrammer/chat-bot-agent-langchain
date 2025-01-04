@@ -1,5 +1,7 @@
 backend/src/core/secure/vertexai.json
 backend/src/core/secure/vertexai.json.enc
 backend/src/.env
+backend/secure/*
+backend/src/.gradio
 
 frontend/node_modules
