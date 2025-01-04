@@ -28,11 +28,3 @@ FUSION_PROMPT = load_prompt_from_file(PromptTypes.FUSION_PROMPT)
 DECOMPOSITION_PROMPT = load_prompt_from_file(PromptTypes.DECOMPOSITION_PROMPT)
 MULTI_TURN_PROMPT = load_prompt_from_file(PromptTypes.MULTI_TURN_PROMPT)
 FINAL_RAG_PROMPT = load_prompt_from_file(PromptTypes.FINAL_RAG_PROMPT)
-
-if __name__ == "__main__":
-    print(BOT_PERSONALITY)
-    print(LLAMA_PROMPT)
-    print(FUSION_PROMPT)
-    print(DECOMPOSITION_PROMPT)
-    print(MULTI_TURN_PROMPT)
-    print(FINAL_RAG_PROMPT)

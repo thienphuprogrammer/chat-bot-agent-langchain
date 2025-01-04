@@ -1,62 +1,28 @@
-from typing import Optional
-
-from langchain import hub
-from langchain_core.prompts import PromptTemplate
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from backend.src.common import BaseObject, Config
-from backend.src.core.models import ModelTypes, MODEL_TO_CLASS
 from .common.objects import Message
+from .core.chains.base_chain import BaseChain
 
 
-class ChainManager(BaseObject):
+class ChainManager(BaseChain):
     def __init__(
             self,
-            config: Config = None,
-            model: Optional[ModelTypes] = None,
+            config=None,
+            model=None,
+            model_kwargs=None,
             prompt_template: str = None,
-            model_kwargs: Optional[dict] = None,
             partial_variables: dict = None,
     ):
-        super().__init__()
-        self.config = config if config is not None else Config()
-        self._base_model = self.get_model(model_type=model, parameters=model_kwargs)
-        self._init_prompt_template(template_path=prompt_template, partial_variables=partial_variables)
+        super().__init__(config=config, model=model, model_kwargs=model_kwargs)
+        self._prompt = self._init_prompt_template_hub(template_path=prompt_template,
+                                                      partial_variables=partial_variables)
         self._init_chain()
 
-    def get_model(self, model_type: Optional[ModelTypes] = None, parameters: Optional[dict] = None):
-        model_name = parameters.pop("model_name", None)
-        if model_type is None:
-            model_type = ModelTypes.LLAMA_OLLAMA
-
-        if model_type is not None:
-            if model_type not in MODEL_TO_CLASS:
-                raise ValueError(
-                    f"Got unknown model type: {model_type}. "
-                    f"Valid types are: {MODEL_TO_CLASS.keys()}."
-                )
-            model_class = MODEL_TO_CLASS[model_type]
-        else:
-            raise ValueError(
-                "Somehow both `model_type` is None, "
-                "this should never happen."
-            )
-
-        if model_type in [ModelTypes.VERTEX, ModelTypes.OPENAI, ModelTypes.NVIDIA, ModelTypes.LLAMA_OLLAMA]:
-            if not model_name:
-                model_name = self.config.base_model_name
-            return model_class(model_name=model_name, **parameters)
-        return model_class(**parameters, return_message=True)
-
-    def _init_chain(self):
+    def _init_chain(self, run_name: str = "GenerateResponse"):
         self.chain = (
                 self._prompt
                 | self._base_model
-        ).with_config(run_name="GenerateResponse")
-
-    def _init_prompt_template(self, template_path: str = None, partial_variables=None):
-        prompt: PromptTemplate = hub.pull(template_path)
-        self._prompt = prompt.partial(**partial_variables)
+        ).with_config(run_name=run_name)
 
     async def _predict(self, message: Message, conversation_id: str):
         try:

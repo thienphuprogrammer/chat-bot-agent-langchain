@@ -15,7 +15,7 @@ from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn
 from backend.src.core.models import ModelTypes
-from backend.src.core.tools.serp import CustomSearchTool
+from backend.src.core.tools.serp import SerpSearchTool
 from backend.src.memory import MEM_TO_CLASS, MemoryTypes
 from backend.src.utils import CacheTypes, BotAnonymizer, ChatbotCache
 from backend.src.utils.loader_kwargs import ModelLoaderKwargs
@@ -37,7 +37,7 @@ class Bot(BaseObject):
     ):
         super().__init__()
         self.config = config if config is not None else Config()
-        self.tools = tools or [CustomSearchTool()]
+        self.tools = tools or [SerpSearchTool()]
         partial_variables = {
             "bot_personality": bot_personality or BOT_PERSONALITY,
             "user_personality": "",
@@ -67,11 +67,13 @@ class Bot(BaseObject):
         return self._memory
 
     def start(self):
-        history_loader = RunnableMap({
-            "input": itemgetter("input"),
-            "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
-            "history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
-        }).with_config(run_name="LoadHistory")
+        history_loader = RunnableMap(
+            {
+                "input": itemgetter("input"),
+                "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
+                "history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
+            }
+        ).with_config(run_name="LoadHistory")
 
         if self.config.enable_anonymizer:
             anonymizer_runnable = self.anonymizer.get_runnable_anonymizer().with_config(run_name="AnonymizeSentence")

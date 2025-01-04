@@ -1,30 +1,24 @@
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import OllamaEmbeddings, ChatOllama
-from langgraph.graph import StateGraph
-from langgraph.prebuilt import ToolNode
 
-from backend.src.common.config import BaseObject
-from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetriever
+from backend.src.core.chains.base_chain import BaseChain
+from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetrieval
 
 
-class PDFQAChain(BaseObject):
+class PDFQAChain(BaseChain):
     def __init__(
             self,
-            retriever: PDFRetriever,
-            base_model,
+            retriever: PDFRetrieval,
             prompt_template: str,
-            graph_builder: StateGraph = None,
+            config=None,
+            model=None,
+            model_kwargs=None,
+            base_model=None,
     ):
-        super().__init__()
+        super().__init__(config=config, model=model, model_kwargs=model_kwargs)
         self._retriever = retriever
         self._retrieve = self._retriever.vector_store_manager.retrieve
         self._base_model = base_model
-        self.tools = ToolNode([self._retrieve])
-        self._init_prompt_template(prompt_template=prompt_template)
-
-    def _init_prompt_template(self, prompt_template: str = None):
-        prompt: ChatPromptTemplate = ChatPromptTemplate.from_template(prompt_template)
-        self._prompt = prompt
+        self._prompt = self._init_prompt_template(prompt_template)
 
     async def _predict(self, input_message: str) -> dict:
         return self._base_model(input_message)
@@ -50,7 +44,7 @@ if __name__ == "__main__":
         What is the OmniPred?
     """
     # Khởi tạo PDFRetriever
-    pdf_retriever = PDFRetriever(embedder=embedder, model=model)
+    pdf_retriever = PDFRetrieval(embedder=embedder, model=model)
     pdf_retriever.process_and_store_pdf(pdf_path="./data/pdf/OmniPred.pdf")
     # serialized, retrieved_docs = pdf_retriever.vector_store_manager.retrieve(query)
 

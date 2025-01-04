@@ -25,6 +25,12 @@ class Question(BaseModel):
     question: str = Field(description="User question")
 
 
+class HypotheticalQuestions(BaseModel):
+    """Generate hypothetical questions."""
+
+    questions: List[str] = Field(..., description="List of questions")
+
+
 class State(TypedDict):
     question: str
     context: List[Document]

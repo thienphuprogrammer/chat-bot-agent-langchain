@@ -1,8 +1,6 @@
 from typing import List
 
 from langchain.load import dumps, loads
-from langchain_core.tracers.langchain import wait_for_all_tracers
-from overrides import overrides
 
 from backend.src.core.rag.translation_query.base_translation import BaseTranslation
 from backend.src.utils.prompt import MULTI_TURN_PROMPT, FINAL_RAG_PROMPT
@@ -25,7 +23,7 @@ class CustomTranslationManager(BaseTranslation):
             prompt_template=final_rag_prompt_template
         )
 
-        self._init_generate_queries(prompt_template=self._prompt_perspectives)
+        self._init_generate_chain(prompt_template=self._prompt_perspectives)
         self._init_retrieval_chain(func=self.get_unique_union)
         self._init_final_rag_chain(prompt_template=self._prompt)
 
@@ -37,24 +35,6 @@ class CustomTranslationManager(BaseTranslation):
         unique_docs = list(set(flattened_docs))
         # Return
         return [loads(doc) for doc in unique_docs]
-
-    @overrides
-    def predict(self, question: str):
-        if not self._final_rag_chain:
-            raise ValueError("Final RAG chain is not initialized. Please initialize the chain first.")
-        if not self._retrieval_chain:
-            raise ValueError("Retrieval chain is not initialized. Please initialize the chain first.")
-        if not self._generate_queries:
-            raise ValueError("Generate queries chain is not initialized. Please initialize the chain first.")
-
-        try:
-            output = self._final_rag_chain.invoke({"question": question})
-            return output
-        except Exception as e:
-            print(f"Error during prediction: {e}")
-            raise e
-        finally:
-            wait_for_all_tracers()
 
 
 if __name__ == "__main__":

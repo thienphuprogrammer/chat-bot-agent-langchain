@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings, ChatOllama
 
 from backend.src.common import BaseObject
-from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetriever
+from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetrieval
 
 
 class PDFRetrieveTool(BaseObject):
@@ -13,7 +13,7 @@ class PDFRetrieveTool(BaseObject):
 
     def __init__(self, model, embedder):
         super().__init__()
-        self._pdf_retriever = PDFRetriever(model=model, embedder=embedder)
+        self._pdf_retriever = PDFRetrieval(model=model, embedder=embedder)
 
     def run(self, query: str, pdf_path: str, unstructured_data: bool = False, k: int = 5) -> Tuple[str, List[Document]]:
         """

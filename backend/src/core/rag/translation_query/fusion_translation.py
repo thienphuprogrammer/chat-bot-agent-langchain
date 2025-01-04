@@ -6,7 +6,7 @@ from backend.src.core.rag.translation_query.base_translation import BaseTranslat
 from backend.src.utils.prompt import FUSION_PROMPT
 
 
-class FusionObject(BaseTranslation):
+class FusionTranslationManager(BaseTranslation):
     def __init__(
             self,
             retriever,
@@ -18,7 +18,7 @@ class FusionObject(BaseTranslation):
         self._retriever = retriever
         self._base_model = model
         self._prompt = self._init_prompt_template(prompt_template=prompt_template)
-        self._init_generate_queries(prompt_template=self._prompt)
+        self._init_generate_chain(prompt_template=self._prompt)
         self._init_retrieval_chain(func=self._reciprocal_rank_fusion)
         self._init_final_rag_chain(prompt_template=self._prompt)
 
@@ -44,15 +44,6 @@ class FusionObject(BaseTranslation):
         ]
 
         return reranked_results
-
-    def _predict(self, input_message: str):
-        try:
-            return self._retrieval_chain(input_message)
-        finally:
-            pass
-
-    def __call__(self, query):
-        return self._predict(query)
 
 
 if __name__ == "__main__":

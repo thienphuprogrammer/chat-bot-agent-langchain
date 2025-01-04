@@ -1,1 +1,1 @@
-from .serp import CustomSearchTool
+from .serp import SerpSearchTool
