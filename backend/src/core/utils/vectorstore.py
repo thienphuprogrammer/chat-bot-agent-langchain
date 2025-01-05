@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import List, Optional
 
 from langchain.retrievers import MultiVectorRetriever
 from langchain_community.vectorstores import Chroma
@@ -14,9 +14,9 @@ class VectorStoreManager(BaseObject):
     def __init__(
             self,
             embedder,
-            store: InMemoryByteStore = None,
-            collection_name: str = None,
-            persist_directory: str = None,
+            store: Optional[InMemoryByteStore] = None,
+            collection_name: Optional[str] = "langchain",
+            persist_directory: Optional[str] = None,
             multi_vector_retriever: bool = False,
     ):
         super().__init__()
@@ -25,42 +25,38 @@ class VectorStoreManager(BaseObject):
         self._collection_name = collection_name
         self._persist_directory = persist_directory
         self._multi_vector_retriever = multi_vector_retriever
-        self._retrieve = None
-        self._store = store if store else InMemoryByteStore()
+        self._store = store or InMemoryByteStore()
 
-    @property
-    def retriever(
+    def get_retriever(
             self,
-            search_type: str = None,
-            search_kwargs: dict = None,
-            id_key: str = None
+            search_type: Optional[str] = "mmr",
+            id_key: Optional[str] = None,
+            **search_kwargs,
     ) -> MultiVectorRetriever | VectorStoreRetriever:
+        if not self._vector_store:
+            self._init_vector_store()
+
         if not self._multi_vector_retriever:
-            retriever = MultiVectorRetriever(
-                vector_store=self._vector_store,
-                byte_store=self._store,
-                id_key=id_key
+            return self._vector_store.as_retriever(
+                search_type=search_type, **search_kwargs
             )
-            self._retrieve = retriever
-        else:
-            retriever = self._vector_store.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
-            self._retrieve = retriever
-        return retriever
+
+        return MultiVectorRetriever(
+            vectorstore=self._vector_store,
+            byte_store=self._store,
+            id_key=id_key)
 
     @property
     def vector_store(self):
         return self._vector_store
 
     def _init_vector_store(self):
-        if not self._collection_name:
-            raise ValueError("Collection name not provided.")
-        if not self._persist_directory:
-            raise ValueError("Persist directory not provided")
-
-        self._vector_store = Chroma(
-            collection_name=self._collection_name,
-            embedding_function=self._embeddings,
-            persist_directory=self._persist_directory)
+        if not self._vector_store:
+            self._vector_store = Chroma(
+                embedding_function=self._embeddings,
+                collection_name=self._collection_name,
+                persist_directory=self._persist_directory,
+            )
 
     def add_documents(
             self,
@@ -68,11 +64,12 @@ class VectorStoreManager(BaseObject):
     ) -> None:
         if not self._vector_store:
             self._init_vector_store()
+
         doc_ids = [str(uuid.uuid4()) for _ in range(len(docs))]
         if not self._multi_vector_retriever:
             self._vector_store.add_documents(documents=docs, metadata=doc_ids)
         else:
-            retriever = self.retriever
+            retriever = self.get_retriever()
             retriever.vectorstore.add_documents(documents=docs)
             retriever.docstore.mset(list(zip(doc_ids, docs)))
 
@@ -94,5 +91,4 @@ class VectorStoreManager(BaseObject):
             f"Source: {doc.metadata}\n" f"Content: {doc.page_content}"
             for doc in retrieved_docs
         )
-
         return serialized, retrieved_docs

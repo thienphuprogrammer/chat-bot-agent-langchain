@@ -8,12 +8,12 @@ class ChainManager(BaseChain):
     def __init__(
             self,
             config=None,
-            model=None,
+            model_name=None,
             model_kwargs=None,
             prompt_template: str = None,
             partial_variables: dict = None,
     ):
-        super().__init__(config=config, model=model, model_kwargs=model_kwargs)
+        super().__init__(config=config, model_name=model_name, model_kwargs=model_kwargs)
         self._prompt = self._init_prompt_template_hub(template_path=prompt_template,
                                                       partial_variables=partial_variables)
         self._init_chain()

@@ -7,13 +7,12 @@ class BaseRetrieval(BaseObject):
             self,
             model,
             embedder,
-            vector_store_manager: VectorStoreManager = None
+            vector_store_manager: VectorStoreManager
     ):
         super().__init__()
         self._base_model = model
         self._embeddings = embedder
-        self._vector_store_manager = vector_store_manager if vector_store_manager else VectorStoreManager(
-            self._embeddings)
+        self._vector_store_manager = vector_store_manager
 
     @property
     def vector_store_manager(self):
@@ -21,7 +20,7 @@ class BaseRetrieval(BaseObject):
 
     @property
     def retriever(self):
-        return self._vector_store_manager.retriever
+        return self._vector_store_manager.get_retriever
 
     @property
     def vectorstore(self):

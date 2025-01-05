@@ -10,13 +10,15 @@ from backend.src.core.models import ModelTypes, MODEL_TO_CLASS
 class BaseChain(BaseObject):
     def __init__(
             self,
+            model_kwargs: Optional[dict],
+            model_name: Optional[ModelTypes] = None,
+            base_model=None,
             config: Config = None,
-            model: Optional[ModelTypes] = None,
-            model_kwargs: Optional[dict] = None,
     ):
         super().__init__()
         self.config = config if config is not None else Config()
-        self._base_model = self.get_model(model_type=model, parameters=model_kwargs)
+        self._base_model = base_model if base_model is not None \
+            else self.get_model(model_type=model_name, parameters=model_kwargs)
 
     @staticmethod
     def _init_prompt_template_hub(template_path: str = None, partial_variables=None) -> PromptTemplate:

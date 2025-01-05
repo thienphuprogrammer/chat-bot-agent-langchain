@@ -8,6 +8,7 @@ from langchain.agents.format_scratchpad import format_log_to_str
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.schema.runnable.base import RunnableMap
 from langchain_core.runnables import RunnableLambda
+from langchain_core.tools import Tool
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
 from backend.src.chain import ChainManager
@@ -15,7 +16,7 @@ from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn
 from backend.src.core.models import ModelTypes
-from backend.src.core.tools.serp import SerpSearchTool
+from backend.src.core.tools.serp_tool import SerpSearchTool
 from backend.src.memory import MEM_TO_CLASS, MemoryTypes
 from backend.src.utils import CacheTypes, BotAnonymizer, ChatbotCache
 from backend.src.utils.loader_kwargs import ModelLoaderKwargs
@@ -33,11 +34,11 @@ class Bot(BaseObject):
             memory_kwargs: Optional[dict] = None,
             model_kwargs: Optional[dict] = None,
             bot_personality: str = BOT_PERSONALITY,
-            tools: List[str] = None,
+            tools: List[Tool] = None,
     ):
         super().__init__()
         self.config = config if config is not None else Config()
-        self.tools = tools or [SerpSearchTool()]
+        self.tools: List[Tool] = tools or [SerpSearchTool()]
         partial_variables = {
             "bot_personality": bot_personality or BOT_PERSONALITY,
             "user_personality": "",
@@ -47,7 +48,7 @@ class Bot(BaseObject):
 
         self.chain = ChainManager(
             config=self.config,
-            model=model,
+            model_name=model,
             prompt_template=prompt_template,
             model_kwargs=model_kwargs if model_kwargs else ModelLoaderKwargs().get_model_kwargs(model=model),
             partial_variables=partial_variables
@@ -138,6 +139,13 @@ class Bot(BaseObject):
         )
 
         self.memory.add_message(turn)
+
+    @staticmethod
+    def find_tool_by_name(tools: List[Tool], tool_name: str):
+        for tool in tools:
+            if tool.name == tool_name:
+                return tool
+        raise ValueError(f"Tool with name {tool_name} not found")
 
     async def __call__(self, message: Message, conversation_id: str):
         try:

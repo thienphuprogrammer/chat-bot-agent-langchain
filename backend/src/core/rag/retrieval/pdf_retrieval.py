@@ -1,5 +1,6 @@
 from backend.src.core.processor.pdf_processor import PDFProcessor
 from backend.src.core.rag.retrieval.base_retrieval import BaseRetrieval
+from backend.src.core.utils import VectorStoreManager
 
 
 class PDFRetrieval(BaseRetrieval):
@@ -7,8 +8,11 @@ class PDFRetrieval(BaseRetrieval):
             self,
             model,
             embedder,
+            vector_store_manager: VectorStoreManager = None
     ):
-        super().__init__(model=model, embedder=embedder)
+        if not vector_store_manager:
+            vector_store_manager = VectorStoreManager(embedder=embedder)
+        super().__init__(model=model, embedder=embedder, vector_store_manager=vector_store_manager)
         self._pdf_processor = PDFProcessor()
 
     def get_docs(self, pdf_path: str, unstructured_data: bool = False):
