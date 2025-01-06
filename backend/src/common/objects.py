@@ -37,6 +37,17 @@ class State(TypedDict):
     answer: str
 
 
+class RagRequest(BaseModel):
+    question: str = Field(
+        description="The question that the user wants to have an answer for."
+    )
+    url: str = Field(description="The url of the docs where the answer is.")
+    deep_read: Optional[str] = Field(
+        description="Specifies weather all nested pages referenced from the starting URL should be read or not. The value should be yes or no.",
+        default="no",
+    )
+
+
 def messages_from_dict(message: dict) -> str:
     human_message = message["human_message"]
     ai_message = message["ai_message"]

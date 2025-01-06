@@ -11,7 +11,7 @@ from langchain_core.runnables import RunnableLambda
 from langchain_core.tools import Tool
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
-from backend.src.chain import ChainManager
+from backend.src.chain_manager import ChainManager
 from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn

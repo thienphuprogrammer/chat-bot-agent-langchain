@@ -1,2 +1,2 @@
 from .bot import Bot
-from .chain import ChainManager
+from .chain_manager import ChainManager
