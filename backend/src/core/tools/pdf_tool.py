@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # Run the tool with a query and PDF file
     query = "What is the main topic of the document?"
-    pdf_path = "../../data/pdf/OmniPred.pdf"
+    pdf_path = "../../../data/pdf/OmniPred.pdf"
     serialized_results, retrieved_docs = pdf_tool.run(query=query, pdf_path=pdf_path)
 
     # Print the results

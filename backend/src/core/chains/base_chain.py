@@ -1,6 +1,8 @@
-from typing import Optional
+from operator import itemgetter
+from typing import Optional, Callable
 
 from langchain import hub
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 
 from backend.src.common import BaseObject, Config
@@ -10,15 +12,20 @@ from backend.src.core.models import ModelTypes, MODEL_TO_CLASS
 class BaseChain(BaseObject):
     def __init__(
             self,
-            model_kwargs: Optional[dict],
+            model_kwargs: Optional[dict] = None,
             model_name: Optional[ModelTypes] = None,
             base_model=None,
             config: Config = None,
+            retriever=None
     ):
         super().__init__()
         self.config = config if config is not None else Config()
         self._base_model = base_model if base_model is not None \
             else self.get_model(model_type=model_name, parameters=model_kwargs)
+        self._retriever = retriever
+        self.generate_chain = None
+        self.retrieval_chain = None
+        self.final_rag_chain = None
 
     @staticmethod
     def _init_prompt_template_hub(template_path: str = None, partial_variables=None) -> PromptTemplate:
@@ -52,3 +59,51 @@ class BaseChain(BaseObject):
                 model_name = self.config.base_model_name
             return model_class(model_name=model_name, **parameters)
         return model_class(**parameters, return_message=True)
+
+    def _init_generate_chain(self, prompt_template: ChatPromptTemplate, run_name: str = "TranslateResponse"):
+        if not self._base_model:
+            raise ValueError("Base model is not initialized. Please initialize the model first.")
+
+        self.generate_chain = (
+                prompt_template
+                | self._base_model
+                | StrOutputParser()
+                | (lambda x: x.split("\n"))  # Split by newlines
+                | (lambda x: [q for q in x if q])
+        ).with_config(run_name=run_name)
+
+    def _init_retrieval_chain(self, func: Callable = None, run_name: str = "RetrieveResponse"):
+        if not self.generate_chain:
+            raise ValueError("Generate queries chain is not initialized. Please initialize the chain first.")
+        if not self._retriever:
+            raise ValueError("Retriever is not initialized. Please initialize the retriever first.")
+
+        if not func:
+            self.retrieval_chain = (
+                    self.generate_chain
+                    | self._retriever.map()
+            ).with_config(run_name=run_name)
+        else:
+            self.retrieval_chain = (
+                    self.generate_chain
+                    | self._retriever.map()
+                    | func
+            ).with_config(run_name=run_name)
+
+    def _init_final_rag_chain(self, prompt_template: ChatPromptTemplate):
+        if not self.generate_chain:
+            raise ValueError("Generate queries chain is not initialized. Please initialize the chain first.")
+        if not self.retrieval_chain:
+            raise ValueError("Retrieval chain is not initialized. Please initialize the chain first.")
+        if not self._base_model:
+            raise ValueError("Base model is not initialized. Please initialize the model first.")
+
+        self.final_rag_chain = (
+                {
+                    "context": self.retrieval_chain,
+                    "question": itemgetter("question")
+                }
+                | prompt_template
+                | self._base_model
+                | StrOutputParser()
+        ).with_config(run_name="FinalRagChain")

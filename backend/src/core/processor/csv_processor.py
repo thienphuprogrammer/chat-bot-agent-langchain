@@ -1,10 +1,10 @@
 import pandas as pd
 from pandas import DataFrame
 
-from backend.src.common import BaseObject
+from backend.src.core.processor.base_processor import BaseProcessor
 
 
-class CSVProcessor(BaseObject):
+class CSVProcessor(BaseProcessor):
     def __init__(self):
         super().__init__()
 

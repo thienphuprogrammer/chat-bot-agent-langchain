@@ -48,6 +48,11 @@ class RagRequest(BaseModel):
     )
 
 
+class DocumentGrader(BaseModel):
+    """Data model for grading document relevance."""
+    binary_score: str = Field(description="Relevance score 'yes' or 'no'")
+
+
 def messages_from_dict(message: dict) -> str:
     human_message = message["human_message"]
     ai_message = message["ai_message"]
@@ -55,18 +60,3 @@ def messages_from_dict(message: dict) -> str:
     human_message = Message(message=human_message["message"], role=human_message["role"])
     ai_message = Message(message=ai_message["message"], role=ai_message["role"])
     return f"{human_message.role}: {human_message.message}\n{ai_message.role}: {ai_message.message}"
-
-
-if __name__ == "__main__":
-    message = {
-        "human_message": {
-            "message": "Hello",
-            "role": "Human"
-        },
-        "ai_message": {
-            "message": "Hi",
-            "role": "AI"
-        }
-    }
-    result = messages_from_dict(message)
-    print(result)

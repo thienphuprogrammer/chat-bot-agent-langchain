@@ -9,6 +9,9 @@ class PromptTypes(str, Enum):
     LLAMA_PROMPT = "llama_prompt"
     MULTI_TURN_PROMPT = "multi_turn_prompt"
     FINAL_RAG_PROMPT = "final_rag_prompt"
+    RELEVANCE_DOCUMENT_PROMPT = "relevance_document_prompt"
+    REWRITE_AGENT_PROMPT = "rewrite_agent_prompt"
+    HYDE_TRANSLATION_PROMPT = "hyde_translation_prompt"
 
 
 def load_prompt_from_file(types: PromptTypes) -> str:
@@ -28,3 +31,6 @@ FUSION_PROMPT = load_prompt_from_file(PromptTypes.FUSION_PROMPT)
 DECOMPOSITION_PROMPT = load_prompt_from_file(PromptTypes.DECOMPOSITION_PROMPT)
 MULTI_TURN_PROMPT = load_prompt_from_file(PromptTypes.MULTI_TURN_PROMPT)
 FINAL_RAG_PROMPT = load_prompt_from_file(PromptTypes.FINAL_RAG_PROMPT)
+RELEVANCE_DOCUMENT_PROMPT = load_prompt_from_file(PromptTypes.RELEVANCE_DOCUMENT_PROMPT)
+REWRITE_AGENT_PROMPT = load_prompt_from_file(PromptTypes.REWRITE_AGENT_PROMPT)
+HYDE_TRANSLATION_PROMPT = load_prompt_from_file(PromptTypes.HYDE_TRANSLATION_PROMPT)

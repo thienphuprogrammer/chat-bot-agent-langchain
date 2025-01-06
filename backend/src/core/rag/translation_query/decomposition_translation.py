@@ -3,19 +3,18 @@ from typing import List
 
 from langchain_core.output_parsers import StrOutputParser
 
-from backend.src.core.rag.translation_query.base_translation import BaseTranslation
+from backend.src.core.chains import BaseChain
 
 
-class DecompositionTranslationManager(BaseTranslation):
+class DecompositionTranslation(BaseChain):
     def __init__(
             self,
             retriever,
-            embedder,
             decomposition_generate_prompt_template: str,
             decompose_prompt_template: str,
             model=None
     ):
-        super().__init__(model=model, retriever=retriever, embedder=embedder)
+        super().__init__(base_model=model, retriever=retriever)
         self._retriever = retriever
         self._base_model = model
         self._decomposition_generate_prompt_template = self._init_prompt_template(
@@ -54,9 +53,5 @@ class DecompositionTranslationManager(BaseTranslation):
         return q_a_pairs, answer
 
     def __call__(self, question: str):
-        questions: List = self._generate_chain.invoke({"input": question})
+        questions: List = self.generate_chain.invoke({"input": question})
         return self._predict(questions)
-
-
-if __name__ == "__main__":
-    pass

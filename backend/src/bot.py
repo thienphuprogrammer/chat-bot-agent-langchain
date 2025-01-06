@@ -16,10 +16,10 @@ from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn
 from backend.src.core.models import ModelTypes
+from backend.src.core.models.model_loader_kwargs import ModelLoaderKwargs
 from backend.src.core.tools.serp_tool import SerpSearchTool
 from backend.src.memory import MEM_TO_CLASS, MemoryTypes
 from backend.src.utils import CacheTypes, BotAnonymizer, ChatbotCache
-from backend.src.utils.loader_kwargs import ModelLoaderKwargs
 from backend.src.utils.prompt import *
 
 
@@ -46,7 +46,7 @@ class Bot(BaseObject):
             "tool_names": ", ".join([tool.name for tool in self.tools])
         }
 
-        self.chain = ChainManager(
+        self.custom_chain = ChainManager(
             config=self.config,
             model_name=model,
             prompt_template=prompt_template,
@@ -84,12 +84,12 @@ class Bot(BaseObject):
             agent = (
                     history_loader
                     | anonymizer_runnable
-                    | self.chain.chain
+                    | self.custom_chain.chain
                     | de_anonymizer
                     | ReActSingleInputOutputParser()
             )
         else:
-            agent = history_loader | self.chain.chain | ReActSingleInputOutputParser()
+            agent = history_loader | self.custom_chain.chain | ReActSingleInputOutputParser()
 
         self.brain = AgentExecutor(
             agent=agent,
@@ -137,20 +137,13 @@ class Bot(BaseObject):
             ai_message=ai_message,
             conversation_id=conversation_id
         )
-
         self.memory.add_message(turn)
 
-    @staticmethod
-    def find_tool_by_name(tools: List[Tool], tool_name: str):
-        for tool in tools:
-            if tool.name == tool_name:
-                return tool
-        raise ValueError(f"Tool with name {tool_name} not found")
-
-    async def __call__(self, message: Message, conversation_id: str):
+    async def __call__(self, message: Message, conversation_id: str, file_path: str = None):
         try:
             try:
-                output = self.brain.invoke({"input": message.message, "conversation_id": conversation_id})['output']
+                if not file_path:
+                    output = self.brain.invoke({"input": message.message, "conversation_id": conversation_id})['output']
             except ValueError as e:
                 import regex as re
                 response = str(e)
@@ -163,7 +156,7 @@ class Bot(BaseObject):
         finally:
             wait_for_all_tracers()
 
-    def predict(self, sentence: dict, conversation_id: str = None):
+    def predict(self, sentence: str, conversation_id: str = None, file_path: str = None):
         message = Message(message=sentence, role=self.config.human_prefix)
         output = asyncio.run(self(message, conversation_id=conversation_id))
         self.add_message_to_memory(human_message=message, ai_message=output, conversation_id=conversation_id)

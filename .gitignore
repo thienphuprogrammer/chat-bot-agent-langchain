@@ -1,7 +1,12 @@
-backend/src/core/secure/vertexai.json
-backend/src/core/secure/vertexai.json.enc
+.idea
+
+backend/src/secure/vertexai.json
+backend/src/secure/vertexai.json.enc
 backend/src/.env
-backend/secure/*
+backend/secure
 backend/src/.gradio
+backend/data
+
+*/__pa
 
 frontend/node_modules

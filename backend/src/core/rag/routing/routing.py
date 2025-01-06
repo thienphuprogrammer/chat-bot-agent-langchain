@@ -3,7 +3,7 @@ from typing import Literal
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from backend.config.settings import BaseObject, Config
+from backend.src.common import BaseObject, Config
 
 SYSTEM_ROUTING_PROMPT = """You are an expert at routing a user question to the appropriate data source.
 
