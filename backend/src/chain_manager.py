@@ -1,8 +1,9 @@
-from langchain_core.tracers.langchain import wait_for_all_tracers
-
+from .common.constants import PERSONAL_CHAT_PROMPT_REACT
 from .common.objects import Message
+from .core.chains import PDFQAChain
 from .core.chains.base_chain import BaseChain
 from .core.chains.cutom_chain import CustomChain
+from .core.rag.retrieval import PDFRetrieval
 
 
 class ChainManager(BaseChain):
@@ -13,31 +14,31 @@ class ChainManager(BaseChain):
             model_kwargs=None,
             retriever=None,
             embedder=None,
-            prompt_template: str = None,
+            prompt_react_template: str = PERSONAL_CHAT_PROMPT_REACT,
             partial_variables: dict = None,
     ):
         super().__init__(config=config, model_name=model_name, model_kwargs=model_kwargs)
-        self._prompt = self._init_prompt_template_hub(template_path=prompt_template,
+        self._prompt = self._init_prompt_template_hub(template_path=prompt_react_template,
                                                       partial_variables=partial_variables)
         self.retriever = retriever
         self.embedder = embedder
-        self.chain = CustomChain(model_name=model_name, prompt_template=prompt_template,
+        self.chain = CustomChain(model_name=model_name, prompt_template=prompt_react_template,
                                  partial_variables=partial_variables)
 
-    async def _predict(self, message: Message, conversation_id: str):
-        try:
-            output = self.chain.chain.invoke({"input": message.message, "conversation_id": conversation_id})
-            output = Message(message=output, role=self.config.ai_prefix)
-            return output
-        finally:
-            wait_for_all_tracers()
+        self.pdf_retriever = PDFRetrieval(embedder=self.embedder, model=self._base_model)
+        self.pdf_qa_chain = PDFQAChain(pdf_retriever=self.pdf_retriever, base_model=self._base_model)
 
-    def chain_stream(self, input: str, conversation_id: str):
-        return self.chain.astream_log(
-            {"input": input, "conversation_id": conversation_id},
-            include_names=["StreamResponse"]
-        )
+    def _init_pdf_qa_chain(self):
+        self.pdf_qa_chain = PDFQAChain(pdf_retriever=self.pdf_retriever, base_model=self._base_model)
 
-    async def __call__(self, message: Message, conversation_id: str):
-        output: Message = await self._predict(message=message, conversation_id=conversation_id)
+    async def _predict(self, message: Message, conversation_id: str, file_name: str = None):
+        if file_name:
+            self.pdf_retriever.process_and_store_pdf(pdf_path=file_name)
+            output = self.pdf_qa_chain(message=message.message, conversation_id=conversation_id)
+        else:
+            output = self.chain(message=message.message, conversation_id=conversation_id)
+        return output
+
+    async def __call__(self, message: Message, conversation_id: str, file_name: str = None):
+        output: Message = await self._predict(message=message, conversation_id=conversation_id, file_name=file_name)
         return output

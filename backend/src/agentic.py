@@ -16,7 +16,7 @@ from backend.src.core.chains import BaseChain
 from backend.src.utils.prompt import RELEVANCE_DOCUMENT_PROMPT, REWRITE_AGENT_PROMPT, MULTI_TURN_PROMPT
 
 
-class AgenticRAG(BaseObject):
+class Agentic(BaseObject):
     def __init__(
             self,
             base_mode=None,
@@ -41,7 +41,6 @@ class AgenticRAG(BaseObject):
 
     @staticmethod
     def format_docs(docs: List[Document]) -> str:
-        """Format a list of documents into a single string."""
         return "\n\n".join(doc.page_content for doc in docs)
 
     def _grade_documents(self, state):

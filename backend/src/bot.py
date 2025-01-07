@@ -39,17 +39,18 @@ class Bot(BaseObject):
         super().__init__()
         self.config = config if config is not None else Config()
         self.tools: List[Tool] = tools or [SerpSearchTool()]
+
         partial_variables = {
-            "bot_personality": bot_personality or BOT_PERSONALITY,
-            "user_personality": "",
+            # "bot_personality": bot_personality or BOT_PERSONALITY,
+            # "user_personality": "",
             "tools": "\n".join([f"{tool.name}: {tool.description}" for tool in self.tools]),
             "tool_names": ", ".join([tool.name for tool in self.tools])
         }
 
-        self.custom_chain = ChainManager(
+        self.chain = ChainManager(
             config=self.config,
             model_name=model,
-            prompt_template=prompt_template,
+            prompt_react_template=prompt_template,
             model_kwargs=model_kwargs if model_kwargs else ModelLoaderKwargs().get_model_kwargs(model=model),
             partial_variables=partial_variables
         )
@@ -84,12 +85,12 @@ class Bot(BaseObject):
             agent = (
                     history_loader
                     | anonymizer_runnable
-                    | self.custom_chain.chain
+                    | self.chain.chain
                     | de_anonymizer
                     | ReActSingleInputOutputParser()
             )
         else:
-            agent = history_loader | self.custom_chain.chain | ReActSingleInputOutputParser()
+            agent = history_loader | self.chain.chain | ReActSingleInputOutputParser()
 
         self.brain = AgentExecutor(
             agent=agent,
@@ -142,8 +143,7 @@ class Bot(BaseObject):
     async def __call__(self, message: Message, conversation_id: str, file_path: str = None):
         try:
             try:
-                if not file_path:
-                    output = self.brain.invoke({"input": message.message, "conversation_id": conversation_id})['output']
+                output = self.brain.invoke({"input": message.message, "conversation_id": conversation_id})['output']
             except ValueError as e:
                 import regex as re
                 response = str(e)
@@ -151,12 +151,13 @@ class Bot(BaseObject):
                 if not response:
                     raise e
                 output = response[0]
+
             output = Message(message=output, role=self.config.ai_prefix)
             return output
         finally:
             wait_for_all_tracers()
 
-    def predict(self, sentence: str, conversation_id: str = None, file_path: str = None):
+    def predict(self, sentence: str, conversation_id: str = None):
         message = Message(message=sentence, role=self.config.human_prefix)
         output = asyncio.run(self(message, conversation_id=conversation_id))
         self.add_message_to_memory(human_message=message, ai_message=output, conversation_id=conversation_id)

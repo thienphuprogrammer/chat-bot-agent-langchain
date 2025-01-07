@@ -25,7 +25,7 @@ class BaseChain(BaseObject):
         self._retriever = retriever
         self.generate_chain = None
         self.retrieval_chain = None
-        self.final_rag_chain = None
+        self.final_chain = None
 
     @staticmethod
     def _init_prompt_template_hub(template_path: str = None, partial_variables=None) -> PromptTemplate:
@@ -98,7 +98,7 @@ class BaseChain(BaseObject):
         if not self._base_model:
             raise ValueError("Base model is not initialized. Please initialize the model first.")
 
-        self.final_rag_chain = (
+        self.final_chain = (
                 {
                     "context": self.retrieval_chain,
                     "question": itemgetter("question")

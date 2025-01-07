@@ -20,7 +20,7 @@ class BaseGradioUI:
             bot_model: Optional[ModelTypes] = None,
             bot_cache: Optional[CacheTypes] = None,
     ):
-        self.bot = bot if bot is not None else Bot(memory=bot_memory, model=bot_model, cache=bot_cache)
+        # self.bot = bot if bot is not None else Bot(memory=bot_memory, model=bot_model, cache=bot_cache)
         self._conversation_id = None
         self._uploaded_files: Dict[str, str] = {}  # Store uploaded files temporarily
 
@@ -82,12 +82,12 @@ class BaseGradioUI:
 
 
 if __name__ == "__main__":
-    bot = Bot(
-        memory=MemoryTypes.CUSTOM_MEMORY,
-        model=ModelTypes.LLAMA_OLLAMA,
-        cache=None,
-    )
+    # bot = Bot(
+    #     memory=MemoryTypes.CUSTOM_MEMORY,
+    #     model=ModelTypes.LLAMA_OLLAMA,
+    #     cache=None,
+    # )
     demo = BaseGradioUI(
-        bot=bot
+        # bot=bot
     )
     demo.start_demo()
