@@ -3,6 +3,7 @@ from typing import Optional
 from langchain_core.tracers.langchain import wait_for_all_tracers
 from langchain_ollama import OllamaEmbeddings, ChatOllama
 
+from backend.src.common.constants import PERSONAL_CHAT_PROMPT_REACT
 from backend.src.core.chains import BaseChain
 from backend.src.core.models import ModelTypes
 from backend.src.core.rag.relevance.fusion import FusionRelevance
@@ -14,8 +15,8 @@ class PDFQAChain(BaseChain):
     def __init__(
             self,
             pdf_retriever: PDFRetrieval,
-            partial_variables: dict,
-            prompt_react_template: str,
+            partial_variables: dict = None,
+            prompt_react_template: str = PERSONAL_CHAT_PROMPT_REACT,
             multi_prompt_template: str = FUSION_PROMPT,
             final_rag_prompt: str = FINAL_RAG_PROMPT,
             model_kwargs=None,
@@ -37,6 +38,8 @@ class PDFQAChain(BaseChain):
         self._multi_prompt_template = self._init_prompt_template(multi_prompt_template)
         self._final_rag_prompt = self._init_prompt_template(final_rag_prompt)
         self._pdf_retriever = PDFRetrieval(embedder=self._embedder, model=self._base_model)
+        if partial_variables is None:
+            partial_variables = {}
         self._react_prompt = self._init_prompt_template_hub(template_path=prompt_react_template,
                                                             partial_variables=partial_variables)
         self._init_generate_chain(self._multi_prompt_template)
@@ -45,7 +48,7 @@ class PDFQAChain(BaseChain):
 
     def _predict(self, message: str, conversation_id: str = ""):
         try:
-            output = self.final_chain.invoke(message)
+            output = self.final_chain.invoke({"question": message})
             return output
         finally:
             wait_for_all_tracers()
@@ -63,13 +66,13 @@ if __name__ == "__main__":
         How OmniPred work?
     """
     # Khởi tạo PDFRetriever
-    # pdf_retriever = PDFRetrieval(embedder=embedder, model=model)
-    # pdf_retriever.process_and_store_pdf(pdf_path="../../../data/pdf/OmniPred.pdf")
-    #
-    # # Khởi tạo QA chains
-    # pdf_qa_chain = PDFQAChain(pdf_retriever=pdf_retriever, base_model=model)
-    #
-    # # Chạy QA chains
-    #
-    # result = pdf_qa_chain(query)
-    # print(result)
+    pdf_retriever = PDFRetrieval(embedder=embedder, model=model)
+    pdf_retriever.process_and_store_pdf(pdf_path="../../../data/pdf/OmniPred.pdf")
+
+    # Khởi tạo QA chains
+    pdf_qa_chain = PDFQAChain(pdf_retriever=pdf_retriever, base_model=model)
+
+    # Chạy QA chains
+
+    result = pdf_qa_chain(query)
+    print(result)

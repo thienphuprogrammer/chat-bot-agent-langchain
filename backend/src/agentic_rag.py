@@ -4,7 +4,6 @@ from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.tools.simple import Tool
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -19,16 +18,16 @@ from backend.src.utils.prompt import RELEVANCE_DOCUMENT_PROMPT, REWRITE_AGENT_PR
 class Agentic(BaseObject):
     def __init__(
             self,
-            base_mode=None,
-            embedder=None,
-            tools: List[Tool] = None,
+            base_model,
+            embedder,
+            tools=None,
             relevance_prompt_template: str = RELEVANCE_DOCUMENT_PROMPT,
             rewrite_prompt_template: str = REWRITE_AGENT_PROMPT,
     ):
         super().__init__()
-        self._base_model = base_mode
+        self._base_model = base_model
         self._embeddings = embedder
-        self._tools = tools
+        self._tools = tools or []
         self._workflow = StateGraph(AgentState)
         self._graph = None
         self._initialize_prompt_template(relevance_prompt_template, rewrite_prompt_template)

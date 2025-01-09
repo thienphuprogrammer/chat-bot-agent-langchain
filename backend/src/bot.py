@@ -1,16 +1,11 @@
 import asyncio
-from operator import itemgetter
 from queue import Queue
 from typing import Optional, List, Union
 
-from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad import format_log_to_str
-from langchain.agents.output_parsers import ReActSingleInputOutputParser
-from langchain.schema.runnable.base import RunnableMap
-from langchain_core.runnables import RunnableLambda
 from langchain_core.tools import Tool
 from langchain_core.tracers.langchain import wait_for_all_tracers
 
+from backend.src.agents.agent_custom import CustomAgent
 from backend.src.chain_manager import ChainManager
 from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
@@ -40,6 +35,18 @@ class Bot(BaseObject):
         self.config = config if config is not None else Config()
         self.tools: List[Tool] = tools or [SerpSearchTool()]
 
+        self.input_queue = Queue(maxsize=6)
+        self._memory = self._init_memory(memory_type=memory, parameters=memory_kwargs)
+        if cache == CacheTypes.GPT_CACHE and model != ModelTypes.OPENAI:
+            self.cache = None
+        self._cache = ChatbotCache.create(cache_type=cache)
+        self.anonymizer = BotAnonymizer(config=self.config)
+        self.chain = self._init_chain(model=model, prompt_template=prompt_template, model_kwargs=model_kwargs,
+                                      bot_personality=bot_personality)
+        self.custom_agent = CustomAgent(config=self.config, chain=self.chain, memory=self.memory,
+                                        anonymizer=self.anonymizer, tools=self.tools)
+
+    def _init_chain(self, model, prompt_template, model_kwargs, bot_personality) -> ChainManager:
         partial_variables = {
             # "bot_personality": bot_personality or BOT_PERSONALITY,
             # "user_personality": "",
@@ -47,61 +54,16 @@ class Bot(BaseObject):
             "tool_names": ", ".join([tool.name for tool in self.tools])
         }
 
-        self.chain = ChainManager(
+        kwargs = model_kwargs or ModelLoaderKwargs().get_model_kwargs(model=model)
+        return ChainManager(
             config=self.config,
             model_name=model,
             prompt_react_template=prompt_template,
-            model_kwargs=model_kwargs if model_kwargs else ModelLoaderKwargs().get_model_kwargs(model=model),
+            model_kwargs=kwargs,
             partial_variables=partial_variables
         )
 
-        self.input_queue = Queue(maxsize=6)
-        self._memory = self.get_memory(memory_type=memory, parameters=memory_kwargs)
-        if cache == CacheTypes.GPT_CACHE and model != ModelTypes.OPENAI:
-            self.cache = None
-        self._cache = ChatbotCache.create(cache_type=cache)
-        self.anonymizer = BotAnonymizer(config=self.config)
-        self.brain = None
-        self.start()
-
-    @property
-    def memory(self):
-        return self._memory
-
-    def start(self):
-        history_loader = RunnableMap(
-            {
-                "input": itemgetter("input"),
-                "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
-                "history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
-            }
-        ).with_config(run_name="LoadHistory")
-
-        if self.config.enable_anonymizer:
-            anonymizer_runnable = self.anonymizer.get_runnable_anonymizer().with_config(run_name="AnonymizeSentence")
-            de_anonymizer = RunnableLambda(self.anonymizer.anonymizer.deanonymize).with_config(
-                run_name="DeAnonymizeResponse")
-
-            agent = (
-                    history_loader
-                    | anonymizer_runnable
-                    | self.chain.chain
-                    | de_anonymizer
-                    | ReActSingleInputOutputParser()
-            )
-        else:
-            agent = history_loader | self.chain.chain | ReActSingleInputOutputParser()
-
-        self.brain = AgentExecutor(
-            agent=agent,
-            tools=self.tools,
-            verbose=True,
-            max_iterations=2,
-            return_intermediate_steps=False,
-            handle_parsing_errors=True
-        )
-
-    def get_memory(self, parameters: dict = None, memory_type: Optional[MemoryTypes] = None):
+    def _init_memory(self, parameters: dict = None, memory_type: Optional[MemoryTypes] = None):
         parameters = parameters or {}
         if memory_type is None:
             memory_type = MemoryTypes.BASE_MEMORY
@@ -118,6 +80,10 @@ class Bot(BaseObject):
                 "this should never happen."
             )
         return memory_class(config=self.config, **parameters)
+
+    @property
+    def memory(self):
+        return self._memory
 
     def reset_history(self, conversation_id: str = None):
         self.memory.clear(conversation_id=conversation_id)
@@ -143,7 +109,7 @@ class Bot(BaseObject):
     async def __call__(self, message: Message, conversation_id: str, file_path: str = None):
         try:
             try:
-                output = self.brain.invoke({"input": message.message, "conversation_id": conversation_id})['output']
+                output = self.custom_agent(message=message.message, conversation_id=conversation_id)['output']
             except ValueError as e:
                 import regex as re
                 response = str(e)
