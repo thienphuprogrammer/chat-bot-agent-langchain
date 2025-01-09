@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings, ChatOllama
 
 from backend.src.common import BaseObject
-from backend.src.core.rag.retrieval.pdf_retrieval import PDFRetrieval
+from backend.src.core.retrieval import PDFRetrieval
 
 
 class PDFRetrieveTool(BaseObject):
@@ -29,7 +29,7 @@ class PDFRetrieveTool(BaseObject):
             Tuple[str, List[Document]]: A tuple containing the serialized results and the retrieved documents.
         """
         # Process the PDF and create the vector store
-        self._pdf_retriever.process_and_store_pdf(pdf_path=pdf_path, unstructured_data=unstructured_data)
+        self._pdf_retriever.store(pdf_path=pdf_path, unstructured_data=unstructured_data)
 
         # Retrieve relevant information based on the query
         serialized, retrieved_docs = self._pdf_retriever.vector_store_manager.retrieve(query=query, k=k)

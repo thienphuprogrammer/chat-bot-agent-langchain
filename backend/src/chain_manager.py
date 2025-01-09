@@ -1,9 +1,9 @@
+from backend.src.core.retrieval import PDFRetrieval
 from .common.constants import PERSONAL_CHAT_PROMPT_REACT
 from .common.objects import Message
 from .core.chains import PDFQAChain
 from .core.chains.base_chain import BaseChain
 from .core.chains.cutom_chain import CustomChain
-from .core.rag.retrieval import PDFRetrieval
 
 
 class ChainManager(BaseChain):
@@ -33,7 +33,7 @@ class ChainManager(BaseChain):
 
     async def _predict(self, message: Message, conversation_id: str, file_name: str = None):
         if file_name:
-            self.pdf_retriever.process_and_store_pdf(pdf_path=file_name)
+            self.pdf_retriever.store(pdf_path=file_name)
             output = self.pdf_qa_chain(message=message.message, conversation_id=conversation_id)
         else:
             output = self.chain(message=message.message, conversation_id=conversation_id)

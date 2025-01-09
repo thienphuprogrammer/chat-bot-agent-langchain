@@ -1,5 +1,5 @@
 from backend.src.core.processor.csv_processor import CSVProcessor
-from backend.src.core.rag.retrieval.base_retrieval import BaseRetrieval
+from backend.src.core.retrieval.base_retrieval import BaseRetrieval
 
 
 class CSVRetrieval(BaseRetrieval):

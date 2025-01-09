@@ -14,9 +14,9 @@ class VectorStoreManager(BaseObject):
     def __init__(
             self,
             embedder,
+            persist_directory: Optional[str] = None,
             store: Optional[InMemoryByteStore] = None,
             collection_name: Optional[str] = "langchain",
-            persist_directory: Optional[str] = None,
             multi_vector_retriever: bool = False,
     ):
         super().__init__()
@@ -51,7 +51,12 @@ class VectorStoreManager(BaseObject):
         return self._vector_store
 
     def _init_vector_store(self):
-        if not self._vector_store:
+        if not self._persist_directory:
+            self._vector_store = Chroma(
+                embedding_function=self._embeddings,
+                collection_name=self._collection_name,
+            )
+        else:
             self._vector_store = Chroma(
                 embedding_function=self._embeddings,
                 collection_name=self._collection_name,

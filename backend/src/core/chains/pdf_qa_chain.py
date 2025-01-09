@@ -1,14 +1,19 @@
 from typing import Optional
 
+from dotenv import load_dotenv
 from langchain_core.tracers.langchain import wait_for_all_tracers
-from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings, ChatNVIDIA
 
 from backend.src.common.constants import PERSONAL_CHAT_PROMPT_REACT
 from backend.src.core.chains import BaseChain
+from backend.src.core.indexing.multi_presentation_indexing import MultiPresentationIndexing
 from backend.src.core.models import ModelTypes
-from backend.src.core.rag.relevance.fusion import FusionRelevance
-from backend.src.core.rag.retrieval import PDFRetrieval
+from backend.src.core.processor.pdf_processor import PDFProcessor
+from backend.src.core.relevance.fusion import FusionRelevance
+from backend.src.core.retrieval import PDFRetrieval
 from backend.src.utils.prompt import *
+
+load_dotenv()
 
 
 class PDFQAChain(BaseChain):
@@ -42,6 +47,7 @@ class PDFQAChain(BaseChain):
             partial_variables = {}
         self._react_prompt = self._init_prompt_template_hub(template_path=prompt_react_template,
                                                             partial_variables=partial_variables)
+
         self._init_generate_chain(self._multi_prompt_template)
         self._init_retrieval_chain(FusionRelevance.reciprocal_rank_fusion)
         self._init_final_rag_chain(self._final_rag_prompt)
@@ -60,19 +66,29 @@ class PDFQAChain(BaseChain):
 
 if __name__ == "__main__":
     # Khởi tạo các dependencies
-    embedder = OllamaEmbeddings(model="llama3.2:1b")
-    model = ChatOllama(model="llama3.2:1b")
+    embedder = NVIDIAEmbeddings(model_name="nvidia/embed-qa-4")
+    model = ChatNVIDIA(model="meta/llama-3.1-405b-instruct")
     query = """
-        How OmniPred work?
+        What is the purpose of the study?
     """
+    prompt_template = ""
+
     # Khởi tạo PDFRetriever
-    pdf_retriever = PDFRetrieval(embedder=embedder, model=model)
-    pdf_retriever.process_and_store_pdf(pdf_path="../../../data/pdf/OmniPred.pdf")
+    model_summary = MultiPresentationIndexing(model=model)
+    pdf_processor = PDFProcessor()
+
+    docs_summary = pdf_processor.process_pdf(pdf_path="../../../data/pdf/OmniPred.pdf", summary_model=model_summary)
+    pdf_summary_retriever = PDFRetrieval(embedder=embedder, model=model)
+    pdf_summary_retriever.store(docs_summary)
+
+    # docs = pdf_processor.process_pdf(pdf_path="../../../data/pdf/OmniPred.pdf")
+    # pdf_retriever = PDFRetrieval(embedder=embedder, model=model)
+    # pdf_retriever.store(docs)
 
     # Khởi tạo QA chains
-    pdf_qa_chain = PDFQAChain(pdf_retriever=pdf_retriever, base_model=model)
+    # pdf_qa_chain = PDFQAChain(pdf_retriever=pdf_retriever, base_model=model)
 
     # Chạy QA chains
 
-    result = pdf_qa_chain(query)
-    print(result)
+    # result = pdf_qa_chain(query)
+    # print(result)
