@@ -1,9 +1,13 @@
 from typing import List
 
 from langchain import hub
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -12,7 +16,7 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 from backend.src.common import BaseObject
 from backend.src.common.objects import DocumentGrader
 from backend.src.core.chains import BaseChain
-from backend.src.utils.prompt import RELEVANCE_DOCUMENT_PROMPT, REWRITE_AGENT_PROMPT, MULTI_TURN_PROMPT
+from backend.src.core.utils.prompt import RELEVANCE_DOCUMENT_PROMPT, REWRITE_AGENT_PROMPT, MULTI_TURN_PROMPT
 
 
 class Agentic(BaseObject):
@@ -137,46 +141,47 @@ class Agentic(BaseObject):
     def __call__(self, state):
         return self._predict(state)
 
-# if __name__ == "__main__":
-#     urls = [
-#         "https://lilianweng.github.io/posts/2023-06-23-agent/",
-#         "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
-#         "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
-#     ]
-#
-#     docs = [WebBaseLoader(url).load() for url in urls]
-#     docs_list = [item for sublist in docs for item in sublist]
-#
-#     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-#         chunk_size=100, chunk_overlap=50
-#     )
-#     doc_splits = text_splitter.split_documents(docs_list)
-#
-#     # Add to vectorDB
-#     vectorstore = Chroma.from_documents(
-#         documents=doc_splits,
-#         collection_name="rag-chroma",
-#         embedding=OllamaEmbeddings(model="llama3.2:1b"),
-#     )
-#     retriever = vectorstore.as_retriever()
-#
-#     from langchain.tools.retriever import create_retriever_tool
-#
-#     retriever_tool = create_retriever_tool(
-#         retriever,
-#         "retrieve_blog_posts",
-#         "Search and return information about Lilian Weng blog posts on LLM agents, prompt engineering, and adversarial attacks on LLMs.",
-#     )
-#
-#     tools = [retriever_tool]
-#
-#     llm = ChatOllama(temperature=0, model="llama3.2:1b")
-#     rag = AgenticRAG(base_mode=llm, embedder=OllamaEmbeddings(model="llama3.2:1b"), tools=tools)
-#
-#     state = {
-#         "messages": [
-#             ("user", "What is the OmniPred?"),
-#         ]
-#     }
-#
-#     result = rag(state)
+
+if __name__ == "__main__":
+    urls = [
+        "https://lilianweng.github.io/posts/2023-06-23-agent/",
+        "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/",
+        "https://lilianweng.github.io/posts/2023-10-25-adv-attack-llm/",
+    ]
+
+    docs = [WebBaseLoader(url).load() for url in urls]
+    docs_list = [item for sublist in docs for item in sublist]
+
+    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+        chunk_size=100, chunk_overlap=50
+    )
+    doc_splits = text_splitter.split_documents(docs_list)
+
+    # Add to vectorDB
+    vectorstore = Chroma.from_documents(
+        documents=doc_splits,
+        collection_name="rag-chroma",
+        embedding=OllamaEmbeddings(model="llama3.2:1b"),
+    )
+    retriever = vectorstore.as_retriever()
+
+    from langchain.tools.retriever import create_retriever_tool
+
+    retriever_tool = create_retriever_tool(
+        retriever,
+        "retrieve_blog_posts",
+        "Search and return information about Lilian Weng blog posts on LLM agents, prompt engineering, and adversarial attacks on LLMs.",
+    )
+
+    tools = [retriever_tool]
+
+    llm = ChatOllama(temperature=0, model="llama3.2:1b")
+    rag = Agentic(base_model=llm, embedder=OllamaEmbeddings(model="llama3.2:1b"), tools=tools)
+
+    state = {
+        "messages": [
+            ("user", "What is the OmniPred?"),
+        ]
+    }
+
+    result = rag(state)

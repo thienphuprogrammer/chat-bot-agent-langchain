@@ -3,18 +3,19 @@ from langchain_core.tracers.langchain import wait_for_all_tracers
 
 from backend.src.common.objects import Message
 from backend.src.core.chains import BaseChain
+from backend.src.core.utils.prompt import PromptUtils
 
 
 class CustomChain(BaseChain):
     def __init__(
             self,
-            model_name,
+            base_model,
             prompt_template: str,
             partial_variables: dict,
     ):
-        super().__init__(model_name=model_name)
-        self._prompt = self._init_prompt_template_hub(template_path=prompt_template,
-                                                      partial_variables=partial_variables)
+        super().__init__(base_model=base_model)
+        self._prompt = PromptUtils().init_prompt_template_hub(template_path=prompt_template,
+                                                              partial_variables=partial_variables)
         self._init_chain()
 
     def _init_chain(self, run_name: str = "GenerateResponse"):

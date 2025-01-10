@@ -17,7 +17,7 @@ class SplitterDocument(BaseObject):
         self._init_text_splitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs)
 
     @staticmethod
-    def _remove_whitespace(doc: Document) -> Document:
+    def remove_whitespace(doc: Document) -> Document:
         """Remove unnecessary whitespace from a document's content."""
         doc.page_content = doc.page_content.replace("\n", " ").strip()
         return doc
@@ -29,5 +29,5 @@ class SplitterDocument(BaseObject):
 
     def splits(self, docs: Iterable[Document]):
         chunks = self._text_splitter.split_documents(docs)
-        cleaned_docs = [self._remove_whitespace(doc) for doc in chunks]
+        cleaned_docs = [self.remove_whitespace(doc) for doc in chunks]
         return cleaned_docs

@@ -1,6 +1,9 @@
 import os
 from enum import Enum
 
+from langchain import hub
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+
 
 class PromptTypes(str, Enum):
     BOT_PERSONALITY_PROMPT = "bot_personality_prompt"
@@ -34,3 +37,31 @@ FINAL_RAG_PROMPT = load_prompt_from_file(PromptTypes.FINAL_RAG_PROMPT)
 RELEVANCE_DOCUMENT_PROMPT = load_prompt_from_file(PromptTypes.RELEVANCE_DOCUMENT_PROMPT)
 REWRITE_AGENT_PROMPT = load_prompt_from_file(PromptTypes.REWRITE_AGENT_PROMPT)
 HYDE_TRANSLATION_PROMPT = load_prompt_from_file(PromptTypes.HYDE_TRANSLATION_PROMPT)
+
+
+class PromptUtils:
+    def __init__(self):
+        self.prompt = {
+            PromptTypes.BOT_PERSONALITY_PROMPT: BOT_PERSONALITY,
+            PromptTypes.LLAMA_PROMPT: LLAMA_PROMPT,
+            PromptTypes.FUSION_PROMPT: FUSION_PROMPT,
+            PromptTypes.DECOMPOSITION_PROMPT: DECOMPOSITION_PROMPT,
+            PromptTypes.MULTI_TURN_PROMPT: MULTI_TURN_PROMPT,
+            PromptTypes.FINAL_RAG_PROMPT: FINAL_RAG_PROMPT,
+            PromptTypes.RELEVANCE_DOCUMENT_PROMPT: RELEVANCE_DOCUMENT_PROMPT,
+            PromptTypes.REWRITE_AGENT_PROMPT: REWRITE_AGENT_PROMPT,
+            PromptTypes.HYDE_TRANSLATION_PROMPT: HYDE_TRANSLATION_PROMPT,
+        }
+
+    def get_prompt(self, prompt_type: PromptTypes) -> str:
+        return self.prompt[prompt_type]
+
+    @staticmethod
+    def init_prompt_template(prompt_template) -> ChatPromptTemplate:
+        prompt: ChatPromptTemplate = ChatPromptTemplate.from_template(prompt_template)
+        return prompt
+
+    @staticmethod
+    def init_prompt_template_hub(template_path: str = None, partial_variables=None) -> PromptTemplate:
+        prompt: PromptTemplate = hub.pull(template_path)
+        return prompt.partial(**partial_variables)

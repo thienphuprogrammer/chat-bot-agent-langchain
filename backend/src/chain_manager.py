@@ -1,44 +1,35 @@
-from backend.src.core.retrieval import PDFRetrieval
+from backend.src.common import BaseObject
+from backend.src.core.utils.prompt import PromptUtils
 from .common.constants import PERSONAL_CHAT_PROMPT_REACT
 from .common.objects import Message
-from .core.chains import PDFQAChain
-from .core.chains.base_chain import BaseChain
 from .core.chains.cutom_chain import CustomChain
 
 
-class ChainManager(BaseChain):
+class ChainManager(BaseObject):
     def __init__(
             self,
-            config=None,
-            model_name=None,
-            model_kwargs=None,
+            base_model=None,
             retriever=None,
             embedder=None,
             prompt_react_template: str = PERSONAL_CHAT_PROMPT_REACT,
             partial_variables: dict = None,
     ):
-        super().__init__(config=config, model_name=model_name, model_kwargs=model_kwargs)
-        self._prompt = self._init_prompt_template_hub(template_path=prompt_react_template,
-                                                      partial_variables=partial_variables)
+        super().__init__(base_model=base_model)
+        self._prompt = PromptUtils().init_prompt_template_hub(template_path=prompt_react_template,
+                                                              partial_variables=partial_variables)
         self.retriever = retriever
         self.embedder = embedder
-        self.chain = CustomChain(model_name=model_name, prompt_template=prompt_react_template,
+        self.chain = CustomChain(base_model=base_model, prompt_template=prompt_react_template,
                                  partial_variables=partial_variables)
 
-        self.pdf_retriever = PDFRetrieval(embedder=self.embedder, model=self._base_model)
-        self.pdf_qa_chain = PDFQAChain(pdf_retriever=self.pdf_retriever, base_model=self._base_model)
-
-    def _init_pdf_qa_chain(self):
-        self.pdf_qa_chain = PDFQAChain(pdf_retriever=self.pdf_retriever, base_model=self._base_model)
-
-    async def _predict(self, message: Message, conversation_id: str, file_name: str = None):
-        if file_name:
-            self.pdf_retriever.store(pdf_path=file_name)
-            output = self.pdf_qa_chain(message=message.message, conversation_id=conversation_id)
-        else:
-            output = self.chain(message=message.message, conversation_id=conversation_id)
+    async def _predict(self, message: Message, conversation_id: str):
+        output = self.chain(message=message.message, conversation_id=conversation_id)
         return output
 
-    async def __call__(self, message: Message, conversation_id: str, file_name: str = None):
-        output: Message = await self._predict(message=message, conversation_id=conversation_id, file_name=file_name)
+    async def __call__(self, message: Message, conversation_id: str):
+        output: Message = await self._predict(message=message, conversation_id=conversation_id)
         return output
+
+
+if __name__ == "__main__":
+    pass

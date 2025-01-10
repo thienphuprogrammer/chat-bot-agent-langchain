@@ -1,8 +1,7 @@
-from backend.src.common import BaseObject
 from backend.src.core.utils.vectorstore import VectorStoreManager
 
 
-class BaseRetrieval(BaseObject):
+class BaseRetrieval:
     def __init__(
             self,
             model,

@@ -7,10 +7,8 @@ from langchain_core.documents import Document
 from langchain_core.stores import InMemoryByteStore
 from langchain_core.vectorstores import VectorStoreRetriever
 
-from backend.src.common.config import BaseObject
 
-
-class VectorStoreManager(BaseObject):
+class VectorStoreManager:
     def __init__(
             self,
             embedder,
