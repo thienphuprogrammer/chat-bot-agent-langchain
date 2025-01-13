@@ -1,11 +1,6 @@
-from operator import itemgetter
 from typing import List, Dict, Any
 
-from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad import format_log_to_str
-from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain_core.documents import Document
-from langchain_core.runnables import RunnableMap, RunnableLambda
 from langgraph.graph import StateGraph
 from langgraph.prebuilt.chat_agent_executor import AgentState
 from pydantic import BaseModel
@@ -25,7 +20,7 @@ class State(BaseModel):
 class CustomAgent(BaseObject):
     def __init__(self,
                  config: Config,
-                 chain,
+                 brain,
                  memory,
                  anonymizer,
                  tools,
@@ -40,13 +35,11 @@ class CustomAgent(BaseObject):
         self._relevance_prompt_template = PromptUtils().init_prompt_template(relevance_prompt_template)
 
         self.tools = tools
-        self.chain = chain
+        self.brain = brain
         self.memory = memory
         self.anonymizer = anonymizer
         self.pdf_retrieve = None
-        self.brain = None
         self._workflow = StateGraph(AgentState)
-        self.start()
 
     async def _grade_documents(self, docs, question):
         print("---CHECK RELEVANCE---")
@@ -56,39 +49,6 @@ class CustomAgent(BaseObject):
         scored_result = chain.invoke({"question": question, "context": docs})
         score = scored_result
         return "yes" if score == "yes" else "no"
-
-    def start(self):
-        history_loader = RunnableMap(
-            {
-                "input": itemgetter("input"),
-                "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
-                "chat_history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
-            }
-        ).with_config(run_name="LoadHistory")
-
-        if self.config.enable_anonymizer:
-            anonymizer_runnable = self.anonymizer.get_runnable_anonymizer().with_config(run_name="AnonymizeSentence")
-            de_anonymizer = RunnableLambda(self.anonymizer.anonymizer.deanonymize).with_config(
-                run_name="DeAnonymizeResponse")
-
-            agent = (
-                    history_loader
-                    | anonymizer_runnable
-                    | self.chain.chain.chain
-                    | de_anonymizer
-                    | ReActSingleInputOutputParser()
-            )
-        else:
-            agent = history_loader | self.chain.chain.chain | ReActSingleInputOutputParser()
-
-        self.brain = AgentExecutor(
-            agent=agent,
-            tools=self.tools,
-            verbose=True,
-            max_iterations=2,
-            return_intermediate_steps=False,
-            handle_parsing_errors=True
-        )
 
     async def route_model(self, state: State) -> str:
         file_path = state.file_path

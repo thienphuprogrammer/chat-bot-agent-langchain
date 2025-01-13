@@ -21,7 +21,7 @@ def load_prompt_from_file(types: PromptTypes) -> str:
     # config = Config()
     file_path: str = types.value + ".txt"
     directory = os.path.dirname(__file__)
-    prompt_path = os.path.join(directory, './../prompt_template')
+    prompt_path = os.path.join(directory, './../../prompt_template')
     file_path = os.path.join(prompt_path, file_path) if not file_path.startswith(directory) else file_path
 
     with open(file_path, "r") as file:

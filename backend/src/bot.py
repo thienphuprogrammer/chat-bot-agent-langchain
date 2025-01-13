@@ -1,17 +1,22 @@
 import asyncio
 import uuid
+from operator import itemgetter
 from queue import Queue
 from typing import Optional, List, Union
 
+from langchain.agents import AgentExecutor
+from langchain.agents.format_scratchpad import format_log_to_str
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from langchain_core.runnables import RunnableMap, RunnableLambda
 from langchain_core.tools import Tool
 from langchain_core.tracers.langchain import wait_for_all_tracers
 from langchain_ollama import OllamaEmbeddings
 
-from backend.src.agents.agent_custom import CustomAgent
 from backend.src.chain_manager import ChainManager
 from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn
+from backend.src.core.agents.agent_custom import CustomAgent
 from backend.src.core.models import ModelTypes, MODEL_TO_CLASS
 from backend.src.core.tools.serp_tool import SerpSearchTool
 from backend.src.core.utils.prompt import *
@@ -48,8 +53,10 @@ class Bot(BaseObject):
         self.anonymizer = BotAnonymizer(config=self.config)
         self.chain = self._init_chain(base_model=self.base_model, prompt_template=prompt_template,
                                       bot_personality=bot_personality)
+        self.brain = None
+        self.start()
 
-        self.custom_agent = CustomAgent(config=self.config, chain=self.chain, memory=self.memory,
+        self.custom_agent = CustomAgent(config=self.config, brain=self.brain, memory=self.memory,
                                         anonymizer=self.anonymizer, tools=self.tools, model=self.base_model,
                                         embedder=self.embeder)
 
@@ -85,7 +92,6 @@ class Bot(BaseObject):
         }
 
         return ChainManager(
-            config=self.config,
             base_model=base_model,
             prompt_react_template=prompt_template,
             partial_variables=partial_variables
@@ -108,6 +114,39 @@ class Bot(BaseObject):
                 "this should never happen."
             )
         return memory_class(config=self.config, **parameters)
+
+    def start(self):
+        history_loader = RunnableMap(
+            {
+                "input": itemgetter("input"),
+                "agent_scratchpad": itemgetter("intermediate_steps") | RunnableLambda(format_log_to_str),
+                "chat_history": itemgetter("conversation_id") | RunnableLambda(self.memory.load_history)
+            }
+        ).with_config(run_name="LoadHistory")
+
+        if self.config.enable_anonymizer:
+            anonymizer_runnable = self.anonymizer.get_runnable_anonymizer().with_config(run_name="AnonymizeSentence")
+            de_anonymizer = RunnableLambda(self.anonymizer.anonymizer.deanonymize).with_config(
+                run_name="DeAnonymizeResponse")
+
+            agent = (
+                    history_loader
+                    | anonymizer_runnable
+                    | self.chain.chain.chain
+                    | de_anonymizer
+                    | ReActSingleInputOutputParser()
+            )
+        else:
+            agent = history_loader | self.chain.chain.chain | ReActSingleInputOutputParser()
+
+        self.brain = AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            verbose=True,
+            max_iterations=2,
+            return_intermediate_steps=False,
+            handle_parsing_errors=True
+        )
 
     @property
     def memory(self):
@@ -169,5 +208,8 @@ if __name__ == "__main__":
         model_kwargs={"model": "qwen2.5:3b"},
         embedder=embedding,
     )
-    bot.predict(sentence="Hello", conversation_id=str(uuid.uuid4()),
-                file_path='./../../../data/pdf/OmniPred.pdf')
+    _input = input()
+    while _input != "exit":
+        print(bot.predict(sentence=_input, conversation_id=str(uuid.uuid4()),
+                          file_path='./../../../data/pdf/OmniPred.pdf'))
+        _input = input()

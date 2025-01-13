@@ -19,10 +19,10 @@ class CSVProcessor(BaseProcessor):
         return df
 
     @staticmethod
-    def save_csv(self, df: DataFrame, save_path: str, delimiter: str = ",", encoding: str = "utf-8"):
+    def save_csv(df: DataFrame, save_path: str, delimiter: str = ",", encoding: str = "utf-8"):
         df.to_csv(save_path, sep=delimiter, encoding=encoding, index=False)
         return save_path
 
     @staticmethod
-    def preview(self, df: DataFrame, n: int = 5):
+    def preview(df: DataFrame, n: int = 5):
         return df.head(n)

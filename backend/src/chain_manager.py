@@ -1,8 +1,8 @@
 from backend.src.common import BaseObject
+from backend.src.common.constants import PERSONAL_CHAT_PROMPT_REACT
+from backend.src.common.objects import Message
+from backend.src.core.chains.cutom_chain import CustomChain
 from backend.src.core.utils.prompt import PromptUtils
-from .common.constants import PERSONAL_CHAT_PROMPT_REACT
-from .common.objects import Message
-from .core.chains.cutom_chain import CustomChain
 
 
 class ChainManager(BaseObject):
