@@ -12,11 +12,11 @@ from langchain_core.tools import Tool
 from langchain_core.tracers.langchain import wait_for_all_tracers
 from langchain_ollama import OllamaEmbeddings
 
+from backend.src.agent_manager import CustomManager
 from backend.src.chain_manager import ChainManager
 from backend.src.common import Config, BaseObject
 from backend.src.common.constants import *
 from backend.src.common.objects import Message, MessageTurn
-from backend.src.core.agents.agent_custom import CustomAgent
 from backend.src.core.models import ModelTypes, MODEL_TO_CLASS
 from backend.src.core.tools.serp_tool import SerpSearchTool
 from backend.src.core.utils.prompt import *
@@ -56,9 +56,9 @@ class Bot(BaseObject):
         self.brain = None
         self.start()
 
-        self.custom_agent = CustomAgent(config=self.config, brain=self.brain, memory=self.memory,
-                                        anonymizer=self.anonymizer, tools=self.tools, model=self.base_model,
-                                        embedder=self.embeder)
+        self.custom_agent = CustomManager(config=self.config, brain=self.brain, memory=self.memory,
+                                          anonymizer=self.anonymizer, tools=self.tools, model=self.base_model,
+                                          embedder=self.embeder)
 
     def get_model(self, model_type: Optional[ModelTypes] = None, parameters: Optional[dict] = None):
         model_name = parameters.pop("model", None)

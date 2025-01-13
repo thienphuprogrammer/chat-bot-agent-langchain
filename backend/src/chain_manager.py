@@ -29,7 +29,3 @@ class ChainManager(BaseObject):
     async def __call__(self, message: Message, conversation_id: str):
         output: Message = await self._predict(message=message, conversation_id=conversation_id)
         return output
-
-
-if __name__ == "__main__":
-    pass
